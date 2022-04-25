@@ -184,20 +184,20 @@ proc create_root_design { reset_polarity } {
   }
 
   # Create instance: divebits_AXI_4_constant_registers_0, and set properties
-  set divebits_AXI_4_constant_registers_0 [ create_bd_cell -type ip -vlnv anonymous:divebits:divebits_AXI_4_constant_registers:* divebits_AXI_4_constant_registers_0 ]
+  set divebits_AXI_4_constant_registers_0 [ create_bd_cell -type ip -vlnv hs-mannheim.de:divebits:divebits_AXI_4_constant_registers:* divebits_AXI_4_constant_registers_0 ]
   set_property -dict [ list \
 						CONFIG.DB_DEFAULT_VALUE {42} \
 						] $divebits_AXI_4_constant_registers_0
 
   # Create instance: divebits_AXI_Master_WriteOnly_0, and set properties
-  set divebits_AXI_Master_WriteOnly_0 [ create_bd_cell -type ip -vlnv anonymous:divebits:divebits_AXI_Master_WriteOnly:* divebits_AXI_Master_WriteOnly_0 ]
+  set divebits_AXI_Master_WriteOnly_0 [ create_bd_cell -type ip -vlnv hs-mannheim.de:divebits:divebits_AXI_Master_WriteOnly:* divebits_AXI_Master_WriteOnly_0 ]
   set_property -dict [ list \
 						CONFIG.DB_ADDRESS {2} \
 						CONFIG.DB_NUM_CODE_WORDS {128} \
 						] $divebits_AXI_Master_WriteOnly_0
 
   # Create instance: divebits_BlockRAM_init_0, and set properties
-  set divebits_BlockRAM_init_0 [ create_bd_cell -type ip -vlnv anonymous:divebits:divebits_BlockRAM_init:* divebits_BlockRAM_init_0 ]
+  set divebits_BlockRAM_init_0 [ create_bd_cell -type ip -vlnv hs-mannheim.de:divebits:divebits_BlockRAM_init:* divebits_BlockRAM_init_0 ]
   set_property -dict [ list \
 						CONFIG.DB_ADDRESS {3} \
 						CONFIG.DB_BRAMCTRL_MODE {true} \
@@ -207,13 +207,13 @@ proc create_root_design { reset_polarity } {
 						] $divebits_BlockRAM_init_0
 
   # Create instance: divebits_config_0, and set properties
-  set divebits_config_0 [ create_bd_cell -type ip -vlnv anonymous:divebits:divebits_config:* divebits_config_0 ]
+  set divebits_config_0 [ create_bd_cell -type ip -vlnv hs-mannheim.de:divebits:divebits_config:* divebits_config_0 ]
   set_property -dict [ list \
 						CONFIG.DB_DAISY_CHAIN_CRC_CHECK {true} \
 						] $divebits_config_0
 
   # Create instance: divebits_constant_vector_0, and set properties
-  set divebits_constant_vector_0 [ create_bd_cell -type ip -vlnv anonymous:divebits:divebits_constant_vector:* divebits_constant_vector_0 ]
+  set divebits_constant_vector_0 [ create_bd_cell -type ip -vlnv hs-mannheim.de:divebits:divebits_constant_vector:* divebits_constant_vector_0 ]
   set_property -dict [ list \
 						CONFIG.DB_ADDRESS {4} \
 						CONFIG.DB_DEFAULT_VALUE {3} \
@@ -221,7 +221,7 @@ proc create_root_design { reset_polarity } {
 						] $divebits_constant_vector_0
 
   # Create instance: divebits_constant_vector_1, and set properties
-  set divebits_constant_vector_1 [ create_bd_cell -type ip -vlnv anonymous:divebits:divebits_constant_vector:* divebits_constant_vector_1 ]
+  set divebits_constant_vector_1 [ create_bd_cell -type ip -vlnv hs-mannheim.de:divebits:divebits_constant_vector:* divebits_constant_vector_1 ]
   set_property -dict [ list \
 						CONFIG.DB_ADDRESS {5} \
 						CONFIG.DB_DEFAULT_VALUE {7} \

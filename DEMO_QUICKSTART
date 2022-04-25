@@ -1,10 +1,10 @@
-DiveBits anonymized release for blind review
-============================================
+DiveBits original release - Quick Demo Project
+==============================================
 
 PREREQUISITES
 -------------
 * Windows or Linux
-* Vivado 2017.2 or 2020.1 WebPACK installation with Arty and Zynq-7000 devices
+* Vivado 2017.2, 2020.1 or 2021.2 WebPACK installation with Arty and Zynq-7000 devices
   (intermediate versions should work).
 * Python 3.6.x or higher installed and included in PATH variable
 
@@ -39,7 +39,8 @@ DEMO PROJECT
   diversified bitstream in various places:
 
   -> The UART output will list various system content with the specified digit added
-  -> LD2..0 and LD6..4 will show the digit in binary. LD7 will be on for control purposes. 
+  -> LD2..0 and LD6..4 will show the digit in binary.
+     LD7 will be on and LD3 will be off for control purposes. 
 
 * Familiarize yourself at will with the various DiveBits components in the Block Design view
   and compare how data is specified for them in the YAML files.

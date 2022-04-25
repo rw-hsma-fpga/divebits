@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <spirit:component xmlns:xilinx="http://www.xilinx.com" xmlns:spirit="http://www.spiritconsortium.org/XMLSchema/SPIRIT/1685-2009" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <spirit:vendor>anonymous</spirit:vendor>
+  <spirit:vendor>hs-mannheim.de</spirit:vendor>
   <spirit:library>divebits</spirit:library>
   <spirit:name>divebits_config</spirit:name>
   <spirit:version>1.0</spirit:version>
   <spirit:busInterfaces>
     <spirit:busInterface>
       <spirit:name>DiveBits_Out</spirit:name>
-      <spirit:busType spirit:vendor="anonymous" spirit:library="divebits" spirit:name="DiveBits" spirit:version="1.0"/>
-      <spirit:abstractionType spirit:vendor="anonymous" spirit:library="divebits" spirit:name="DiveBits_rtl" spirit:version="1.0"/>
+      <spirit:busType spirit:vendor="hs-mannheim.de" spirit:library="divebits" spirit:name="DiveBits" spirit:version="1.0"/>
+      <spirit:abstractionType spirit:vendor="hs-mannheim.de" spirit:library="divebits" spirit:name="DiveBits_rtl" spirit:version="1.0"/>
       <spirit:master/>
       <spirit:portMaps>
         <spirit:portMap>
@@ -31,8 +31,8 @@
     </spirit:busInterface>
     <spirit:busInterface>
       <spirit:name>DiveBits_Feedback</spirit:name>
-      <spirit:busType spirit:vendor="anonymous" spirit:library="divebits" spirit:name="DiveBits" spirit:version="1.0"/>
-      <spirit:abstractionType spirit:vendor="anonymous" spirit:library="divebits" spirit:name="DiveBits_rtl" spirit:version="1.0"/>
+      <spirit:busType spirit:vendor="hs-mannheim.de" spirit:library="divebits" spirit:name="DiveBits" spirit:version="1.0"/>
+      <spirit:abstractionType spirit:vendor="hs-mannheim.de" spirit:library="divebits" spirit:name="DiveBits_rtl" spirit:version="1.0"/>
       <spirit:monitor spirit:interfaceMode="master"/>
       <spirit:portMaps>
         <spirit:portMap>
@@ -340,7 +340,7 @@
       <xilinx:definitionSource>package_project</xilinx:definitionSource>
       <xilinx:coreRevision>8</xilinx:coreRevision>
       <xilinx:upgrades>
-        <xilinx:canUpgradeFrom>anonymous:user:divebits_config:1.0</xilinx:canUpgradeFrom>
+        <xilinx:canUpgradeFrom>hs-mannheim.de:user:divebits_config:1.0</xilinx:canUpgradeFrom>
       </xilinx:upgrades>
       <xilinx:coreCreationDateTime>2021-08-01T19:39:07Z</xilinx:coreCreationDateTime>
       <xilinx:tags>
