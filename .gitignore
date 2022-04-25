@@ -1,0 +1,38 @@
+#.gitignore
+
+# baseline: everything
+
+# not this file itself
+!.gitignore
+
+# not the existing local files
+!DEMO_QUICKSTART
+!divebits_demo_project.tcl
+!LICENSE
+!README.md
+
+# not the existing folders and data below
+!block_ip_xil/
+!block_ip_xil/*
+!block_ip_xil/**
+
+!demo_project_templates/
+!demo_project_templates/*
+!demo_project_templates/**
+
+!divebits_tools/
+!divebits_tools/*
+!divebits_tools/**
+
+!hdl_ip_xil/
+!hdl_ip_xil/*
+!hdl_ip_xil/**
+
+#Python caches
+divebits_tools/__pycache__/
+divebits_tools/__pycache__/*
+divebits_tools/__pycache__/**
+
+demo_project_templates/__pycache__/
+demo_project_templates/__pycache__/*
+demo_project_templates/__pycache__/**

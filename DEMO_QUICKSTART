@@ -1,0 +1,47 @@
+DiveBits anonymized release for blind review
+============================================
+
+PREREQUISITES
+-------------
+* Windows or Linux
+* Vivado 2017.2 or 2020.1 WebPACK installation with Arty and Zynq-7000 devices
+  (intermediate versions should work).
+* Python 3.6.x or higher installed and included in PATH variable
+
+
+DEMO PROJECT
+------------
+* Open Vivado GUI and run the Tcl script ./divebits_demo_project.tcl
+
+  An overview of callable functions will be shown in the Tcl console.
+  You can show this help again with the Tcl command
+  > DEMODB_HELP
+
+* For a fully automatic build, call either
+  > DEMODB_0_AUTOMATIC_BUILD ARTY_A7_35
+  or
+  > DEMODB_0_AUTOMATIC_BUILD ZEDBOARD
+  depending on your target board.
+
+* Vivado should run through until DiveBits has placed 8 diversified bitstreams in
+  ./DEMO_PROJECT/DiveBits_data/7_output_bitstreams/
+
+  (these bitstreams are based on the YAML configurations in
+   ./DEMO_PROJECT/DiveBits_data/3_bitstream_config_files/)
+
+* To see UART output from the board:
+  a) for the Arty, open the UART provided through the USB JTAG cable at 115200 Baud
+  b) for the Zedboard, plug a PMODUSBUART board into the upper pin row of PMOD A
+     and connect by USB to the PC. Open the UART at 115200 Baud
+
+* Use the Vivado Hardware Manager to program the board with one of the files
+  numbered config_0.bit to config_7.bit - the digit is encoded in the
+  diversified bitstream in various places:
+
+  -> The UART output will list various system content with the specified digit added
+  -> LD2..0 and LD6..4 will show the digit in binary. LD7 will be on for control purposes. 
+
+* Familiarize yourself at will with the various DiveBits components in the Block Design view
+  and compare how data is specified for them in the YAML files.
+
+  Write your own modified YAML config file and let the tools build the bitstream.
