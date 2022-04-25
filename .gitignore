@@ -1,6 +1,7 @@
 #.gitignore
 
 # baseline: everything
+*
 
 # not this file itself
 !.gitignore
