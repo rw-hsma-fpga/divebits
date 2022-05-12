@@ -105,6 +105,15 @@ proc _open_block_diagram {} {
 }
 
 
+proc _elaborate_rtl {} {
+
+	set design_fileset [ lindex [ get_filesets -filter { FILESET_TYPE == DesignSrcs } ] 0 ]
+
+	set RTL_SUCCESS [synth_design -rtl -name rtl_1]
+	puts "RTL Analysis output: ${RTL_SUCCESS}"
+}
+
+
 proc _extract_block_diagram_components {} {
 
 	global env
@@ -216,6 +225,143 @@ proc _extract_block_diagram_components {} {
 	set return_vals "$configpath $BRAMcount"
 	return $return_vals
 }
+
+
+proc _extract_rtl_components {} {
+
+	global env
+	global db_subdir_EXTRACTED_COMPONENTS
+
+	set blocklist [ get_cells ]
+
+	## identify config block, extract data and and remove from block list
+	foreach block $blocklist {
+			set DB_ADDRESS [ get_property DB_ADDRESS [ get_cells $block ] ]
+			if { $DB_ADDRESS == 0 } {
+				set config_block $block
+				set blocklist [ lsearch -all -inline -not -exact $blocklist $config_block ]
+				#set configname [ get_property NAME [ get_cells $block ] ]
+				#set configpath [ get_property PATH [ get_cells $block ] ] ;# TODO TODO TODO: IS EMPTY IN RTL!
+				set configpath [ get_property NAME [ get_cells $block ] ]
+				set BRAMcount [ get_property DB_NUM_OF_32K_ROMS [ get_cells $block ] ]
+			}
+		}
+	### TODO check that there's exactly 1 config block
+
+	set yamlpath "${env(DIVEBITS_PROJECT_PATH)}/${db_subdir_EXTRACTED_COMPONENTS}/db_components.yaml"
+	set yamlfile [open $yamlpath w]
+
+	# extract config block data
+	set hosttime_id [ subDB::_get_host_time_id ]
+	puts $yamlfile "Hosttime_ID: $hosttime_id"
+	puts $yamlfile "db_config_block:"
+	puts $yamlfile "  BLOCK_PATH: $configpath"
+
+	## output all DB_* properties
+	set PROPLIST [ list_property $config_block ]
+	set PROPLIST [ lsearch -all -inline -glob $PROPLIST "DB*" ]
+	foreach prop $PROPLIST {
+			set propval [ get_property $prop [ get_cells $config_block ] ]
+			set prop [ string range $prop 0 [ string length $prop ] ]
+			puts $yamlfile "  $prop: $propval"
+		}
+	puts $yamlfile ""
+
+	
+	
+	## remove non-divebits components
+	foreach block $blocklist {
+			set DB_ADDRESS [ get_property DB_ADDRESS [ get_cells $block ] ]
+			if { [ string length $DB_ADDRESS ] == 0 } {
+
+				set blocklist [ lsearch -all -inline -not -exact $blocklist $block ]
+			}
+		}
+
+
+		
+	## Make sure each DB_ADDRESS is only used once
+	# Get DB addresses into list
+	set db_addr_list []
+	foreach block $blocklist { lappend db_addr_list [ get_property DB_ADDRESS $block ] }
+
+	if { [ llength $db_addr_list ] != [ llength $blocklist ] } {
+		puts "ERROR: Incorrect number of Divebits component addresses"
+		return 0
+	}
+	
+	
+	set new_addr_iterator 1
+
+
+
+	set addrconstrpath "${env(DIVEBITS_PROJECT_PATH)}/${db_subdir_EXTRACTED_COMPONENTS}/db_addresses.xdc"
+	remove_files -quiet -fileset constrs_1 "${addrconstrpath}"
+	set addrconstrfile [open $addrconstrpath w]
+	puts $addrconstrfile "create_property DB_ADDRESS cell -type int"
+	
+	for {set i 0} {$i < [ llength $db_addr_list ] } {incr i} {
+		
+		set db_addr [ lindex $db_addr_list $i ]
+		set curr_pos [ lsearch $db_addr_list $db_addr ]
+		set next_pos [ lsearch -start $curr_pos+1   $db_addr_list $db_addr ]
+		
+		# if number turns up again change second iteration
+		if { $next_pos != -1} {
+			# find new number not in the list yet
+			while { [ lsearch $db_addr_list $new_addr_iterator ] != -1} { incr new_addr_iterator }
+			# change in block properties
+			set tempblock [ lindex $blocklist $next_pos ]			
+			puts $addrconstrfile "set_property DB_ADDRESS ${new_addr_iterator} \[ get_cells ${tempblock} \]"
+			set_property DB_ADDRESS ${new_addr_iterator} [ get_cells ${tempblock} ]
+			
+			# change in address list			
+			lset db_addr_list $next_pos $new_addr_iterator
+		}
+		
+	}
+	close $addrconstrfile
+	add_files -quiet -fileset constrs_1 $addrconstrpath
+
+
+	### TODO check user authorization? Validate? Only do when double numbers are there?
+	#save_bd_design
+
+	#create_property DB_ADDRESS cell -type int
+	#set_property DB_ADDRESS 7 [get_cells vecB]
+
+	#file mkdir /home/willenbe/FCCM2022/RTL_Test/RTL_Demo/RTL_prj/RTL_prj.srcs/constrs_1/new
+	#close [ open /home/willenbe/FCCM2022/RTL_Test/RTL_Demo/RTL_prj/RTL_prj.srcs/constrs_1/new/db_constraints.xdc w ]
+	#add_files -fileset constrs_1 /home/willenbe/FCCM2022/RTL_Test/RTL_Demo/RTL_prj/RTL_prj.srcs/constrs_1/new/db_constraints.xdc
+	#set_property target_constrs_file /home/willenbe/FCCM2022/RTL_Test/RTL_Demo/RTL_prj/RTL_prj.srcs/constrs_1/new/db_constraints.xdc [current_fileset -constrset]
+	#save_constraints -force
+		
+
+	# start component list
+	puts $yamlfile "db_components:"
+
+	## output all DB_* properties
+	foreach block $blocklist {
+			set comppath [ get_property NAME [ get_cells $block ] ]
+			puts $yamlfile "  - BLOCK_PATH: $comppath"
+			
+			set PROPLIST [ list_property  $block ]
+			set PROPLIST [ lsearch -all -inline -glob $PROPLIST "DB*" ]
+			foreach prop $PROPLIST {
+					set propval [ get_property $prop [ get_cells $block ] ]
+					set prop [ string range $prop 0 [ string length $prop ] ]
+					puts $yamlfile "    $prop: $propval"
+				}
+			puts $yamlfile ""
+		}
+		
+	# close and check-print YAML file
+	close $yamlfile
+	
+	set return_vals "$configpath $BRAMcount"
+	return $return_vals
+}
+
 
 proc _install_python3_pyyaml { } {
 
@@ -429,7 +575,7 @@ proc DB_0_add_DiveBits_IP_repo { } {
 }
 
 
-proc DB_1_component_extraction { } {
+proc DB_1_block_component_extraction { } {
 
 	global db_toolpath
 	global env
@@ -465,6 +611,64 @@ proc DB_1_component_extraction { } {
 		puts "DB_NUM_OF_32K_ROMS already correct size"
 	}
 	
+
+	### TODO check success of each, add success/failure message
+}
+
+
+proc DB_1A_rtl_component_extraction { } {
+
+	global db_toolpath
+	global env
+	global db_subdir_EXTRACTED_COMPONENTS
+	global db_subdir_CONFIG_FILE_TEMPLATE
+
+	::subDB::_establish_data_path
+	::subDB::_elaborate_rtl
+	set config_bram_info [ ::subDB::_extract_rtl_components ]
+	
+	::subDB::_call_python3_script "--version"
+	::subDB::_call_python3_script \
+				"${db_toolpath}/DB_extract.py" \
+				"-x ${env(DIVEBITS_PROJECT_PATH)}/${db_subdir_EXTRACTED_COMPONENTS}/" \
+				"-t ${env(DIVEBITS_PROJECT_PATH)}/${db_subdir_CONFIG_FILE_TEMPLATE}/"
+
+	set CONFIG_BLOCK_PATH [ lindex $config_bram_info 0 ]
+	set NUM_BRAMS [ lindex $config_bram_info 1 ]
+
+	set python_tcl_file "${env(DIVEBITS_PROJECT_PATH)}/${db_subdir_EXTRACTED_COMPONENTS}/set_bram_count.tcl"
+	if { [ file exists $python_tcl_file ] } {
+		source -notrace $python_tcl_file
+	} else {
+		puts "No Python-generated tcl file found..."
+		set $REQUIRED_BRAMS $NUM_BRAMS
+	}
+
+	set bramconstrpath "${env(DIVEBITS_PROJECT_PATH)}/${db_subdir_EXTRACTED_COMPONENTS}/db_brams.xdc"
+	remove_files -quiet -fileset constrs_1 "${bramconstrpath}"
+	set bramconstrfile [open $bramconstrpath w]
+	puts $bramconstrfile "create_property DB_NUM_OF_32K_ROMS cell -type int"
+
+	if { $REQUIRED_BRAMS != $NUM_BRAMS } {	
+		puts "Setting DB_NUM_OF_32K_ROMS parameter to $REQUIRED_BRAMS..."
+
+		puts $bramconstrfile "set_property DB_NUM_OF_32K_ROMS ${REQUIRED_BRAMS} \[ get_cells ${CONFIG_BLOCK_PATH} \]"
+
+		#set_property DB_NUM_OF_32K_ROMS $REQUIRED_BRAMS [ get_bd_cells $CONFIG_BLOCK_PATH ]
+		#save_bd_design
+		#file mkdir /home/willenbe/FCCM2022/RTL_Test/RTL_Demo/RTL_prj/RTL_prj.srcs/constrs_1/new
+		#close [ open /home/willenbe/FCCM2022/RTL_Test/RTL_Demo/RTL_prj/RTL_prj.srcs/constrs_1/new/db_constraints.xdc w ]
+		#add_files -fileset constrs_1 /home/willenbe/FCCM2022/RTL_Test/RTL_Demo/RTL_prj/RTL_prj.srcs/constrs_1/new/db_constraints.xdc
+		#set_property target_constrs_file /home/willenbe/FCCM2022/RTL_Test/RTL_Demo/RTL_prj/RTL_prj.srcs/constrs_1/new/db_constraints.xdc [current_fileset -constrset]
+		#save_constraints -force
+	} else {
+		puts "DB_NUM_OF_32K_ROMS already correct size"
+	}
+	close $bramconstrfile
+	add_files -quiet -fileset constrs_1 $bramconstrpath
+
+	# close Elaborated RTL design
+	close_design -quiet
 
 	### TODO check success of each, add success/failure message
 }
@@ -636,7 +840,9 @@ proc DB_HELP {} {
 	append message "" ; append message "\n"
 	append message " call  DB_0_add_DiveBits_IP_repo                      to add DiveBits IP repository      " ; append message "\n"
 	append message "" ; append message "\n"
-	append message " call  DB_1_component_extraction                      after block design is finished     " ; append message "\n"
+	append message " call  DB_1_block_component_extraction                after block design is finished     " ; append message "\n"
+	append message "" ; append message "\n"
+	append message " call  DB_1A_rtl_component_extraction                 after HDL design is finished       " ; append message "\n"
 	append message "" ; append message "\n"
 	append message " call  DB_2_get_memory_data_and_bitstream \$bit_path   after implementation               " ; append message "\n"
 	append message "          (\$bit_path  only needs to specified                                            " ; append message "\n"
