@@ -4,6 +4,8 @@ use ieee.numeric_std.all;
 
 package divebits is
 
+-- included public entities:
+-- 
 
 	component divebits_config is
 		Generic ( DB_RELEASE_HIGH_ACTIVE : boolean := true;
