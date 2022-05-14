@@ -424,7 +424,7 @@ proc DEMODB_1_create_project_and_block_design { {board ZEDBOARD} {specified_proj
 	current_bd_design $design_name
 
 
-
+	## TODO change to call of DB_0 command
 	set DB_REPO "${DEMOBUILD_SCRIPT_FOLDER}/block_ip_xil"
 	set IP_REPO_LIST {}
 	lappend IP_REPO_LIST $DB_REPO
@@ -538,7 +538,7 @@ proc DEMODB_0_AUTOMATIC_BUILD { {board ZEDBOARD} {specified_project_path ""} } {
 	puts "====================================================="
 
 	DEMODB_1_create_project_and_block_design $board $specified_project_path
-	DB_1_component_extraction
+	DB_1a_block_component_extraction
 	DEMODB_2_build_bitstream
 	DEMODB_3_add_microblaze_binary
 	DB_2_get_memory_data_and_bitstream  $ELF_BIT_PATH

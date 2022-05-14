@@ -109,7 +109,7 @@ proc _elaborate_rtl {} {
 
 	set design_fileset [ lindex [ get_filesets -filter { FILESET_TYPE == DesignSrcs } ] 0 ]
 
-	set RTL_SUCCESS [synth_design -rtl -name rtl_1]
+	set RTL_SUCCESS [synth_design -rtl -rtl_skip_ip -name rtl_1]
 	puts "RTL Analysis output: ${RTL_SUCCESS}"
 }
 
@@ -240,8 +240,6 @@ proc _extract_rtl_components {} {
 			if { $DB_ADDRESS == 0 } {
 				set config_block $block
 				set blocklist [ lsearch -all -inline -not -exact $blocklist $config_block ]
-				#set configname [ get_property NAME [ get_cells $block ] ]
-				#set configpath [ get_property PATH [ get_cells $block ] ] ;# TODO TODO TODO: IS EMPTY IN RTL!
 				set configpath [ get_property NAME [ get_cells $block ] ]
 				set BRAMcount [ get_property DB_NUM_OF_32K_ROMS [ get_cells $block ] ]
 			}
@@ -293,13 +291,6 @@ proc _extract_rtl_components {} {
 	
 	set new_addr_iterator 1
 
-
-
-	set addrconstrpath "${env(DIVEBITS_PROJECT_PATH)}/${db_subdir_EXTRACTED_COMPONENTS}/db_addresses.xdc"
-	remove_files -quiet -fileset constrs_1 "${addrconstrpath}"
-	set addrconstrfile [open $addrconstrpath w]
-	puts $addrconstrfile "create_property DB_ADDRESS cell -type int"
-	
 	for {set i 0} {$i < [ llength $db_addr_list ] } {incr i} {
 		
 		set db_addr [ lindex $db_addr_list $i ]
@@ -308,34 +299,31 @@ proc _extract_rtl_components {} {
 		
 		# if number turns up again change second iteration
 		if { $next_pos != -1} {
-			# find new number not in the list yet
-			while { [ lsearch $db_addr_list $new_addr_iterator ] != -1} { incr new_addr_iterator }
-			# change in block properties
-			set tempblock [ lindex $blocklist $next_pos ]			
-			puts $addrconstrfile "set_property DB_ADDRESS ${new_addr_iterator} \[ get_cells ${tempblock} \]"
-			set_property DB_ADDRESS ${new_addr_iterator} [ get_cells ${tempblock} ]
-			
-			# change in address list			
-			lset db_addr_list $next_pos $new_addr_iterator
+
+			# output list of addresses and break with error
+			puts ""
+			puts ""
+			puts ""
+			puts "ERROR: DiveBits address(es) used multiple times"
+			puts ""
+			puts "DB_ADDRESS \t Instance name"
+			puts "---------- \t -------------"
+
+			for {set j 0} {$j < [ llength $db_addr_list ] } {incr j} {
+
+				set blockaddr [ lindex $db_addr_list $j ]
+				set blockname [ lindex $blocklist $j ]
+				puts "\t$blockaddr \t\t $blockname"
+			}
+			puts "---------- \t -------------"
+			puts "In RTL design mode, the DB_ADDRESS generic has to be set by hand to unique numbers for each component"
+			# close Elaborated RTL design
+			close_design -quiet
+			error "Aborted on identical DB_ADDRESS"
+
 		}
 		
 	}
-	close $addrconstrfile
-	add_files -quiet -fileset constrs_1 $addrconstrpath
-
-
-	### TODO check user authorization? Validate? Only do when double numbers are there?
-	#save_bd_design
-
-	#create_property DB_ADDRESS cell -type int
-	#set_property DB_ADDRESS 7 [get_cells vecB]
-
-	#file mkdir /home/willenbe/FCCM2022/RTL_Test/RTL_Demo/RTL_prj/RTL_prj.srcs/constrs_1/new
-	#close [ open /home/willenbe/FCCM2022/RTL_Test/RTL_Demo/RTL_prj/RTL_prj.srcs/constrs_1/new/db_constraints.xdc w ]
-	#add_files -fileset constrs_1 /home/willenbe/FCCM2022/RTL_Test/RTL_Demo/RTL_prj/RTL_prj.srcs/constrs_1/new/db_constraints.xdc
-	#set_property target_constrs_file /home/willenbe/FCCM2022/RTL_Test/RTL_Demo/RTL_prj/RTL_prj.srcs/constrs_1/new/db_constraints.xdc [current_fileset -constrset]
-	#save_constraints -force
-		
 
 	# start component list
 	puts $yamlfile "db_components:"
@@ -549,7 +537,7 @@ proc DB_set_DiveBits_data_path { {data_path ""} } {
 }
 
 
-proc DB_0_add_DiveBits_IP_repo { } {
+proc DB_0a_add_block_ip_repo { } {
 
 	global db_toolpath
 	
@@ -574,8 +562,24 @@ proc DB_0_add_DiveBits_IP_repo { } {
 
 }
 
+proc DB_0b_add_rtl_ip_repo { } {
 
-proc DB_1_block_component_extraction { } {
+	global db_toolpath
+	
+	set old_dir [ pwd ]
+	
+	#set ip_repo_list [ get_property  ip_repo_paths  [current_project] ]
+
+	cd $db_toolpath
+	set db_repo_relative "../hdl_ip_xil/"
+	add_files -norecurse $db_repo_relative
+	
+	cd $old_dir
+
+}
+
+
+proc DB_1a_block_component_extraction { } {
 
 	global db_toolpath
 	global env
@@ -616,7 +620,7 @@ proc DB_1_block_component_extraction { } {
 }
 
 
-proc DB_1A_rtl_component_extraction { } {
+proc DB_1b_rtl_component_extraction { } {
 
 	global db_toolpath
 	global env
@@ -644,28 +648,27 @@ proc DB_1A_rtl_component_extraction { } {
 		set $REQUIRED_BRAMS $NUM_BRAMS
 	}
 
-	set bramconstrpath "${env(DIVEBITS_PROJECT_PATH)}/${db_subdir_EXTRACTED_COMPONENTS}/db_brams.xdc"
-	remove_files -quiet -fileset constrs_1 "${bramconstrpath}"
-	set bramconstrfile [open $bramconstrpath w]
-	puts $bramconstrfile "create_property DB_NUM_OF_32K_ROMS cell -type int"
 
 	if { $REQUIRED_BRAMS != $NUM_BRAMS } {	
-		puts "Setting DB_NUM_OF_32K_ROMS parameter to $REQUIRED_BRAMS..."
 
-		puts $bramconstrfile "set_property DB_NUM_OF_32K_ROMS ${REQUIRED_BRAMS} \[ get_cells ${CONFIG_BLOCK_PATH} \]"
 
-		#set_property DB_NUM_OF_32K_ROMS $REQUIRED_BRAMS [ get_bd_cells $CONFIG_BLOCK_PATH ]
-		#save_bd_design
-		#file mkdir /home/willenbe/FCCM2022/RTL_Test/RTL_Demo/RTL_prj/RTL_prj.srcs/constrs_1/new
-		#close [ open /home/willenbe/FCCM2022/RTL_Test/RTL_Demo/RTL_prj/RTL_prj.srcs/constrs_1/new/db_constraints.xdc w ]
-		#add_files -fileset constrs_1 /home/willenbe/FCCM2022/RTL_Test/RTL_Demo/RTL_prj/RTL_prj.srcs/constrs_1/new/db_constraints.xdc
-		#set_property target_constrs_file /home/willenbe/FCCM2022/RTL_Test/RTL_Demo/RTL_prj/RTL_prj.srcs/constrs_1/new/db_constraints.xdc [current_fileset -constrset]
-		#save_constraints -force
+		puts ""
+		puts ""
+		puts ""
+		puts "ERROR: DiveBits data storage requires ${REQUIRED_BRAMS} BlockRAMs"
+		puts "       but the generic DB_NUM_OF_32K_ROMS ERROR of the"
+		puts "       divebits_config  module is set to ${NUM_BRAMS}."
+		puts ""
+		puts "In RTL design mode, the DB_NUM_OF_32K_ROMS generic has to be specified"
+		puts "by hand to values other than 1 (the default)"
+		puts ""
+		# close Elaborated RTL design
+		close_design -quiet
+		error "Aborted on incorrect generic  DB_NUM_OF_32K_ROMS  for  divebits_config"
+
 	} else {
 		puts "DB_NUM_OF_32K_ROMS already correct size"
 	}
-	close $bramconstrfile
-	add_files -quiet -fileset constrs_1 $bramconstrpath
 
 	# close Elaborated RTL design
 	close_design -quiet
@@ -836,20 +839,22 @@ proc DB_HELP {} {
 	append message "*****************************************************************************************" ; append message "\n"
 	append message "**** DiveBits tools - function overview: ************************************************" ; append message "\n"
 	append message "" ; append message "\n"
-	append message " call  DB_set_DiveBits_data_path \$data_path           to specify DB data location        " ; append message "\n"
+	append message " call  DB_set_DiveBits_data_path \$DATA_PATH           to specify DB data location        " ; append message "\n"
 	append message "" ; append message "\n"
-	append message " call  DB_0_add_DiveBits_IP_repo                      to add DiveBits IP repository      " ; append message "\n"
+	append message " call  DB_0a_add_block_ip_repo                        to add DiveBits IP repository      " ; append message "\n"
 	append message "" ; append message "\n"
-	append message " call  DB_1_block_component_extraction                after block design is finished     " ; append message "\n"
+	append message " call  DB_0b_add_rtl_ip_repo                          to add DiveBits RTL to project     " ; append message "\n"
 	append message "" ; append message "\n"
-	append message " call  DB_1A_rtl_component_extraction                 after HDL design is finished       " ; append message "\n"
+	append message " call  DB_1a_block_component_extraction               after block design is finished     " ; append message "\n"
 	append message "" ; append message "\n"
-	append message " call  DB_2_get_memory_data_and_bitstream \$bit_path   after implementation               " ; append message "\n"
+	append message " call  DB_1b_rtl_component_extraction                 after HDL design is finished       " ; append message "\n"
+	append message "" ; append message "\n"
+	append message " call  DB_2_get_memory_data_and_bitstream \$BIT_PATH   after implementation               " ; append message "\n"
 	append message "          (\$bit_path  only needs to specified                                            " ; append message "\n"
 	append message "           when another tool (e.g. Vitis, SDK) has                                       " ; append message "\n"
 	append message "           modified the bitstream post-implementation)                                   " ; append message "\n"
 	append message "" ; append message "\n"
-	append message " call  DB_PT_run_python3_config_generator \$script     to make config files               " ; append message "\n"
+	append message " call  DB_PT_run_python3_config_generator \$SCRIPT     to make config files               " ; append message "\n"
 	append message "" ; append message "\n"
 	append message " call  DB_3_generate_bitstreams                       to make diversified bitstreams     " ; append message "\n"
 	append message "" ; append message "\n"
