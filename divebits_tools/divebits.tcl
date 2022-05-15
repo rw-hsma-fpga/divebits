@@ -383,6 +383,82 @@ proc _install_python3_pyyaml { } {
 }
 
 
+proc _check_python_availability {} {
+
+	global env
+	global pythonbinaryname
+
+	# save and clear Python path variables, so Python 2.x is out
+	if { [ info exists env(PYTHONPATH) ] } {
+		set PYTHONPATH_bak $env(PYTHONPATH)
+		unset env(PYTHONPATH)
+	}
+	if { [ info exists env(PYTHONHOME) ] } {
+		set PYTHONHOME_bak $env(PYTHONHOME)
+		unset env(PYTHONHOME)
+	}
+	set PATH_BAK $env(PATH)
+	set env(PATH) [ regsub -all {python} $PATH_BAK nowrongpy ]
+	
+	## run script
+	#set p3call [ catch [ exec  -ignorestderr -- python3 --version ] p3version ]
+	#if { $p3call } {
+	#	puts "Exec error ${p3call}"
+	#} else {
+	#	puts "Python 3 catch response is ${p3call}"
+	#	puts "Python 3 version is ${p3version}"
+	#}
+
+	global tcl_platform env
+	if {$tcl_platform(platform) eq "windows"} {
+		set pythonbinaryname "python"
+		set pipbinaryname "pip"
+	} else {
+		set pythonbinaryname "python3"
+		set pipbinaryname "pip3"
+	}
+
+	set pipoutput [ exec -ignorestderr -- $pipbinaryname --disable-pip-version-check list ]
+	#puts $pipoutput 
+	set pyyaml_missing [ expr ( [ string first "PyYAML" $pipoutput] == -1 ) ] 
+	set bitstring_missing [ expr ( [ string first "bitstring" $pipoutput] == -1 ) ] 
+ 
+	if { $pyyaml_missing } {
+		puts ""
+		puts ""
+		puts "ERROR: Required Python package \"PyYAML\" is not installed"
+		puts "Please install in a regular console (not Vivado) with"
+		puts ">  ${pipbinaryname} install pyyaml"
+	}
+
+	if { $bitstring_missing } {
+		puts ""
+		puts ""
+		puts "ERROR: Required Python package \"bitstring\" is not installed"
+		puts "Please install in a regular console (not Vivado) with"
+		puts ">  ${pipbinaryname} install bitstring"
+	}
+
+	set env(PATH) $PATH_BAK
+
+	# restore path variables
+	if { [ info exists env(PYTHONPATH_bak) ] } {
+		set env(PYTHONPATH) $PYTHONPATH_bak 
+	}
+
+	if { [ info exists env(PYTHONHOME_bak) ] } {
+		set env(PYTHONHOME) $PYTHONHOME_bak
+	}
+
+	if { $pyyaml_missing || $bitstring_missing } {
+		error "Aborted: Python packages missing"
+	}
+
+	return
+
+}
+
+
 proc _call_python3_script { py_script_path args } {
 
 	global env
@@ -742,10 +818,6 @@ proc DB_3_generate_bitstreams {} {
 				"-c ${env(DIVEBITS_PROJECT_PATH)}/${db_subdir_BITSTREAM_CONFIG_FILES}/" \
 				"-m ${env(DIVEBITS_PROJECT_PATH)}/${db_subdir_MEM_CONFIG_FILES}/"
 
-#set PREP_STOP_SECS [ clock seconds ]
-#set PREP_DIFF_SECS [ expr $PREP_STOP_SECS - $PREP_START_SECS ]
-#puts "PREP START: $PREP_START_SECS - PREP STOP: $PREP_STOP_SECS  =  $PREP_DIFF_SECS secs"
-
 	set memfiles [ glob -tails -nocomplain -directory "${env(DIVEBITS_PROJECT_PATH)}/${db_subdir_MEM_CONFIG_FILES}" "*.mem" ]
 	set memfiles [ lsort $memfiles ]
 	
@@ -759,8 +831,6 @@ proc DB_3_generate_bitstreams {} {
 	
 	set bitstream_in_size [ file size $bitstream_in ]
 
-#set UM_START_SECS [ clock seconds ]
-	
 	# clear old generated bitstreams if present
 	set old_bitfiles [glob -nocomplain "${env(DIVEBITS_PROJECT_PATH)}/${db_subdir_OUTPUT_BITSTREAMS}/*.bit"]
 	if { $old_bitfiles != "" } {
@@ -799,9 +869,6 @@ proc DB_3_generate_bitstreams {} {
 		}
 	}
 
-#set UM_STOP_SECS [ clock seconds ]
-#set UM_DIFF_SECS [ expr $UM_STOP_SECS - $UM_START_SECS ]
-#puts "UM START: $UM_START_SECS - UM STOP: $UM_STOP_SECS  =  $UM_DIFF_SECS secs"
 	set num_bitstreams [ llength $stripped_filenames ]
 	puts "**** Completion: $num_bitstreams diversified bitstreams generated. ****"
 
@@ -839,7 +906,7 @@ proc DB_HELP {} {
 	append message "*****************************************************************************************" ; append message "\n"
 	append message "**** DiveBits tools - function overview: ************************************************" ; append message "\n"
 	append message "" ; append message "\n"
-	append message " call  DB_set_DiveBits_data_path \$DATA_PATH           to specify DB data location        " ; append message "\n"
+	append message " call  DB_set_DiveBits_data_path \$DATA_PATH           to set non-standard DB data path   " ; append message "\n"
 	append message "" ; append message "\n"
 	append message " call  DB_0a_add_block_ip_repo                        to add DiveBits IP repository      " ; append message "\n"
 	append message "" ; append message "\n"
@@ -850,7 +917,7 @@ proc DB_HELP {} {
 	append message " call  DB_1b_rtl_component_extraction                 after HDL design is finished       " ; append message "\n"
 	append message "" ; append message "\n"
 	append message " call  DB_2_get_memory_data_and_bitstream \$BIT_PATH   after implementation               " ; append message "\n"
-	append message "          (\$bit_path  only needs to specified                                            " ; append message "\n"
+	append message "          (\$BIT_PATH  only needs to specified                                            " ; append message "\n"
 	append message "           when another tool (e.g. Vitis, SDK) has                                       " ; append message "\n"
 	append message "           modified the bitstream post-implementation)                                   " ; append message "\n"
 	append message "" ; append message "\n"
@@ -864,11 +931,10 @@ proc DB_HELP {} {
 }
 
 
-### TODO: IS THERE MORE THAN CAN BE MOVED INTO PYTHON (portability?) Calling Xilinx-specific Tcl stuff from Python?
 global db_toolpath
 
 set db_toolpath [ ::subDB::_get_script_dir ]
-#::subDB::_install_python3_pyyaml
+::subDB::_check_python_availability
 
 global db_subdir_EXTRACTED_COMPONENTS
 global db_subdir_CONFIG_FILE_TEMPLATE
