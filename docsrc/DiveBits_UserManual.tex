@@ -1,0 +1,865 @@
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass[a4paper,12pt]{article}
+\usepackage[a4paper,bindingoffset=0.0in,%
+            left=0.7in,right=0.7in,top=0.7in,bottom=1.0in,%
+            footskip=.5in]{geometry}
+\renewcommand{\baselinestretch}{1.2}
+
+\usepackage[ansinew]{inputenc}
+%\usepackage[ngerman]{babel} %francais, polish, spanish, ...
+\usepackage[T1]{fontenc}
+\usepackage{lmodern} %Type1-font for non-english texts and characters
+
+\usepackage{graphicx} % Required for the inclusion of images
+\graphicspath{{graphics/}}
+\usepackage{float}
+\usepackage{tcolorbox}
+
+\usepackage{amsmath} % Required for some math elements 
+\usepackage{menukeys}
+
+\usepackage{hyperref}
+
+\usepackage{titling}
+\usepackage{titlesec}
+
+\usepackage{enumitem}
+\setenumerate[1]{label=\thesubsection.\arabic*.}
+\setenumerate[2]{label*=\arabic*.}
+
+\usepackage{fancyvrb}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+	\lhead{DiveBits User Manual}
+	\rhead{Release 1.0}
+	\fancyfoot{}
+	\fancyfoot[R]{\thepage}
+	\fancyfoot[L]{\copyright \the\year \phantom{X}R.Willenberg}
+	
+	%\setlength{\footskip}{10mm}
+	%\cfoot{center of the footer!}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+% redefine /emph
+\makeatletter
+\DeclareRobustCommand{\em}{%
+  \@nomath\em \if b\expandafter\@car\f@series\@nil
+  \normalfont \else \bfseries \slshape \fi}
+\makeatother
+
+%
+\newcommand{\esricon}[1]{\includegraphics[height=1em]{#1}}
+\newcommand{\esrtype}[1]{\large{\textbf{\texttt{#1}}}\normalsize}
+\newcommand{\esrpath}[1]{\textbf{#1}}
+\newcommand{\esrapart}[1]{\\\phantom{}\\#1\\\phantom{}\\}
+\newcommand{\esrspecialemph}[1]{\textit{\underline{#1}}}
+\newcommand{\esrmenu}[1]{\menu{#1}}
+\newcommand{\esrPNG}[3]{\begin{figure}[H]\centering\includegraphics[width=#1\linewidth]{#2.png}\caption{#3}\label{fig:#2}\end{figure}}
+\newcommand{\esrJPG}[3]{\begin{figure}[H]\centering\includegraphics[width=#1\linewidth]{#2.jpg}\caption{#3}\label{fig:#2}\end{figure}}
+\newcommand{\esrbeginenum}[0]{\begin{enumerate}[align=parleft,labelsep=0.55cm,leftmargin=1.4cm]}
+\newcommand{\esrendenum}[0]{\end{enumerate}}
+
+
+\renewcommand{\maketitlehooka}{\LARGE\bfseries\sffamily}
+\titleformat*{\section}{\Large\bfseries\sffamily}
+\titleformat*{\subsection}{\large\bfseries\sffamily}
+%titleformat*{\subsubsection}{\normalsize}%\bfseries}
+\titleformat*{\paragraph}{\normalsize\sffamily}%\bfseries}
+\titleformat*{\subparagraph}{\normalsize\sffamily}%\bfseries}
+
+\renewcommand{\familydefault}{\sfdefault}
+
+\setlength\parindent{0pt} % Removes all indentation from paragraphs
+
+
+
+
+
+%----------------------------------------------------------------------------------------
+%	DOCUMENT INFORMATION
+%----------------------------------------------------------------------------------------
+
+\title{DiveBits User Manual\\Release 1.0} % Title
+
+\author{Ruediger Willenberg}
+%\date{}
+\date{\today} % Date for the report
+
+\begin{document}
+
+\maketitle
+\thispagestyle{fancy}
+\pagestyle{fancy}
+
+\renewcommand{\contentsname}{Contents}
+\tableofcontents
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%		\emph{}		% HERVORHEBUNG 	(Strg+E)
+%%%		\esrapart{}	% ZW.LEERZEILEN (Alt+E  >  B  >  1)  %% MUSS TEXT DIREKT DAVOR UND DAHINTER HABEN
+%%%		\esricon{}	% INLINE-GRAFIK	(Alt+E  >  B  >  2)
+%%%		\esrpath{}	% DATEIPFAD		(Alt+E  >  B  >  3)
+%%%		\esrtype{}	% CODE         	(Alt+E  >  B  >  5)
+%%%		\esrmenu{}	% MENÜS/BUTTONS	(Alt+E  >  B  >  6)
+%%%		\esrspecialemph{}	% BESONDERS BETONT	(Alt+E  >  B  >  4)
+%%%		\esrPNG{}	% PNG-BILD	(Alt+E  >  B  >  7)
+%%%		\esrJPG{}	% JPG-BILD	(Alt+E  >  B  >  8)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+
+\section{Introduction}
+
+DiveBits is a framework of IP components and Xilinx tool flow extensions that enable easy generation of multiple bitstream copies with individual constant data (\textit{diversified} bitstreams).
+
+\section{Installation}
+
+\subsection{Prerequisites}
+
+DiveBits works with Vivado installations under Windows and Linux. Specifically, it has been tested with
+\begin{itemize}
+	\item Vivado 2017.2 (Windows 10 and Ubuntu Linux 18.04 LTS)
+	\item Vivado 2020.1 (Windows 10 and Ubuntu Linux 18.04 LTS)
+	\item Vivado 2021.2 (Windows 10 and Ubuntu Linux 20.04 LTS)
+\end{itemize}
+It is likely to work with versions in-between and hopefully even with newer versions, as well as on other Linuxes that run Vivado. Good luck with Windows 11.
+
+\phantom{X}\\
+Divebits requires \esrtype{python} version 3.6.* or newer, the Python package installer \esrtype{pip} and the python packages \esrtype{PyYAML} and \esrtype{bitstring}. The tools needs to be in the system's \esrtype{PATH} variable.
+
+\phantom{X}\\
+Under Windows, download and install the most recent Python; \esrtype{pip} is automatically installed. On a command-line, install the extra packages with
+
+\esrtype{>  pip install pyyaml bitstring}
+
+\phantom{X}\\
+Under Ubuntu Linux, install python and pip with
+
+\esrtype{>  sudo apt-get install python3 python3-pip}
+
+and the packages with
+
+\esrtype{>  pip3 install pyyaml bitstring}
+
+
+\subsection{Download/Installation} 
+
+DiveBits is provided on \emph{Github.com} and can be retrieved and installed in one of two ways:
+
+\begin{itemize}
+	\item Download and extract ZIP file
+	\\\esrtype{https://github.com/rw-hsma-fpga/divebits/archive/refs/heads/main.zip}
+	\item Clone the git repository with
+	\\\esrtype{git clone https://github.com/rw-hsma-fpga/divebits.git}
+\end{itemize}
+
+Using \esrtype{git} enables you to upgrade to newer versions with a simple \esrtype{git pull}. Of course, if you want to adapt and modify DiveBits code, you can also fork the repository to your own Github account first.
+
+DiveBits does not have to be installed/unzipped/cloned in a specific system location, it can be started and used from anywhere. We still recommend a location in your work directory, but it does not have to be in relation to a specific Vivado project.
+
+\section{Quick Start}
+
+	\subsection{Building a demo system for Zedboard or Arty A7-35}
+
+DiveBits comes with am automatically-building design for the \emph{Digilent Zedboard} and the \emph{Digilent Arty~A7-35}. See the next subsection to adapt the demo to other targets.
+
+To activate the demonstration flow, execute the Tcl file \esrpath{\$DIVEBITS/divebits\_demo\_project.tcl}, assuming \esrpath{\$DIVEBITS/} is the directory that you cloned or unzipped to. There are two ways to do this:
+
+\begin{itemize}
+	\item In the Vivado startup menu, select \esrmenu{Tools > Run Tcl Script...} and select the file \textit{or}
+	\item Type the following into the Tcl console input at the bottom of the Vivado window:\\
+	\esrtype{> source \$DIVEBITS/divebits\_demo\_project.tcl}
+	(Replace \$DIVEBITS)
+\end{itemize}
+
+The script prepares several Tcl functions and lists them in the Console window. You can recall that list anytime by calling\\
+
+\esrtype{> DEMODB\_HELP}
+
+Resize or scroll through the console window to see the complete list of commands.
+
+Make sure that no project is open in Vivado. A fully automatic build can now be achieved by calling either
+
+\esrtype{> DEMODB\_0\_AUTOMATIC\_BUILD  ZEDBOARD}
+
+or
+
+\esrtype{> DEMODB\_0\_AUTOMATIC\_BUILD  ARTY\_A7\_35}
+
+This command will run automatically through all the steps to:
+
+\begin{itemize}
+	\item Activate DiveBits functionality
+	\item Generate a new project
+	\item Build a block design with a Microblaze processor and a selection of DiveBits IP blocks
+	\item Implement the hardware design and build a bitstream
+	\item Extract all the information from the design that is required to provide diversified data through the DiveBits components
+	\item Add pre-compiled Microblaze binary code to the bitstream so that the processor can read data from certain connected DiveBits components and output it via UART.
+  \item Call a Python script that will generate individual DiveBits data for 8 bitstreams in YAML format
+	\item Generate the 8 bitstreams in a few seconds.	
+\end{itemize}
+
+By default, the Vivado project will be generated in the directory \esrpath{\$DIVEBITS/DEMO\_PROJECT/}. The directory that DiveBits uses to store all its project-specific data is set to \\\esrpath{DEMO\_PROJECT/DiveBits\_data}. The project path can be set to any other location by specifying it as a second parameter after the board parameter when calling \esrtype{DEMODB\_0\_AUTOMATIC\_BUILD}
+
+The 8 configuration files generated by script are named \esrpath{config\_0.yaml} through \esrpath{config\_7.yaml} and can be found in \\\esrpath{DEMO\_PROJECT/DiveBits\_data/3\_bitstream\_config\_files}.
+
+They result in corresponding bitstream files \esrpath{config\_0.bit} through \esrpath{config\_7.bit} in 
+\\\esrpath{DEMO\_PROJECT/DiveBits\_data/7\_output\_bitstreams}
+
+which can be downloaded to the board through the Vivado Hardware manager.
+
+The significant number \esrtype{0..7} in the filename is used in the DiveBits configuration data and turns up in various places in the bitstream's output:
+
+\begin{itemize}
+	\item \esrtype{LED[2..0]} and \esrtype{LED[6..4]} display the number in binary. For control purposes, \esrtype{LED[7]} is always \esrtype{1} and \esrtype{LED[3]} is always \esrtype{0}. The LEDs are controlled by two \emph{divebits\_constant\_vector} components with 4 output bits each.
+	
+	\item A simple \emph{divebits\_AXI\_Write\_Master} that can be used as a low-resource CPU replacement writes a short text message containing the config number to the UART.
+	
+	\item The Microblaze processor reads from the AXI Subordinate \emph{divebits\_AXI\_4\_constant\_registers} and prints the four 32-bit constants provided in this way.
+	
+	\item The Microblaze processor dumps the complete content of a dual-port BlockRAM that was initialized via its second port by a \emph{divebits\_BlockRAM\_init} component.  
+	
+\end{itemize}
+
+Figure~\ref{fig:CONFIG5_PUTTY} shows part of the output for the bitstream \esrpath{config\_5.bit}.
+
+\esrPNG{1.0}{CONFIG5_PUTTY}{Ausgabe \esrpath{config\_5.bit}}
+
+To receive the UART output
+\begin{itemize}
+	\item For the Arty Board, connect a terminal at \emph{115200 Baud} to the UART available as part of the USB programming connection.
+	\item For the Zedboard, the UART TX output is available at 3.3V~LVCMOS level at Pin~2 of its Pmod~A connector. The simplest way to access the data is through a PmodUSBUART device plugged into the connector's upper row. 
+\end{itemize}
+
+
+	\subsection{Adapting the demo for other targets}
+	
+To use the demo for another target board and FPGA, the demo generation must be executed step by step instead of through the single-command flow, so that the FPGA device and various pin constraints can be modified:
+
+\begin{itemize}
+	\item Call \esrtype{DB\_DEMO} in the Tcl console to list all the required commands again.
+	
+	\item Call \esrtype{DEMODB\_1\_create\_project\_and\_block\_design  ZEDBOARD}
+	      
+				Again a different project path can be specified, too.
+				
+	\item Now that the project has been built, it has to be adjusted to the new target:
+	
+			\begin{itemize}
+				\item In the Vivado menu, click \esrmenu{Tools > Settings > Project Settings > General} and change the setting \esrmenu{Project device} to the correct FPGA device.
+				
+				\item Open the constraints file \esrpath{db\_demo\_zedboard} and adapt the pin constraints for the clock input, reset button, UART TX and RX(unused) as well as the 8 LEDs. Also adapt the clock period and waveform pulse length if different from 100MHz. Save with \esrmenu{Ctrl+S}.
+
+				
+				\item In the block diagram, adjust the External Port Properties of the \esrtype{reset\_rtl} port if the polarity of the reset button is \emph{Active~Low}. Run \esrmenu{Validate (F6)} to propagate the change to the \esrpath{Reset Manager}. Validate informs you that \esrpath{Clock~Wizard} now has a mismatched reset level. Open the \esrpath{Clock~Wizard} settings. Surprisingly, you find the reset polarity setting on the \esrmenu{Output Clocks} tab.
+				
+				\item If the input clock is different from 100MHz adjust this, too, in the \esrmenu{Clocking Options} tab of the \esrpath{Clock~Wizard}.
+				
+				\item Check your block design again with \esrmenu{Validate (F6)} and save it with \esrmenu{Ctrl+S}
+	
+			\end{itemize}
+			
+			\item Call \esrtype{DB\_1\_component\_extraction}, a general DiveBits function that extracts structural data from the block diagram, adjusts block diagram settings and generates some initial files for DiveBits configuration.
+			
+			\item Call \esrtype{DEMODB\_2\_build\_bitstream}; the name is self-explanatory.
+			
+			\item Call \esrtype{DEMODB\_3\_add\_microblaze\_binary}. A pre-compiled ELF binary for the Microblaze processor is integrated into the code memory locations in the bitstream.
+			
+			\item Call \esrtype{DB\_2\_get\_memory\_data\_and\_bitstream \$ELF\_BIT\_PATH}. Do not change \$ELF\_BIT\_PATH to something else, it is a Tcl variable that has been set by the previous call. This general DiveBits command extracts the location of the BRAM that is later filled with DiveBits data and makes a copy of the project's generated bitstream. Since we have already generated another bitstream with the Microblaze binary included, we need to specify its path; otherwise DiveBits would copy the original implementation flow result. 
+			
+			\item Call \esrtype{DB\_PT\_run\_python3\_config\_generator\\\$DEMOFILES/generate\_demo\_configs.py -n 8}
+			
+			\$DEMOFILES is another pre-set Tcl variable, but you change the number of files generated if you want to. Python scripts should only be called from the Vivado Tcl console with the DB command shown, otherwise Vivado will use its own internal copy of Python and things WILL go wrong.
+			
+			
+			\item Finally, \esrtype{DB\_3\_generate\_bitstreams} will make your bitstreams, which you will find in\\\esrpath{DEMO\_PROJECT/DiveBits\_data/7\_output\_bitstreams} and can download at will.
+			
+			\item \esrtype{DEMODB\_4\_clean\_project} will delete the entire demo project folder (CAUTION: That includes your modified target data).
+			
+			
+\end{itemize}
+
+\newpage
+\section{Using DiveBits in your design}
+
+\subsection{Calling DiveBits}
+
+To use the DiveBits framework in your Vivado project, call the Tcl script\\\esrpath{\$DIVEBITS/divebits\_tools/divebits.tcl}, assuming \esrpath{\$DIVEBITS/} is the directory that you cloned or unzipped to. There are two ways to do this:
+
+\begin{itemize}
+	\item In the Vivado startup menu, select \esrmenu{Tools > Run Tcl Script...} and select the file \textit{or}
+	\item Type the following into the Tcl console input at the bottom of the Vivado window:\\
+	\esrtype{> source \$DIVEBITS/divebits\_tools/divebits.tcl}
+	(Replace \$DIVEBITS)
+\end{itemize}
+
+With the execution of the script, all DiveBits commands required for the extension of the design flow are established as commands, as listed by the console output:
+
+\begin{Verbatim}[fontsize=\small]
+*****************************************************************************************
+**** DiveBits tools - function overview: ************************************************
+
+ call  DB_set_DiveBits_data_path $DATA_PATH           to set non-standard DB data path   
+
+ call  DB_0a_add_block_ip_repo                        to add DiveBits IP repository      
+
+ call  DB_0b_add_rtl_ip_repo                          to add DiveBits RTL to project     
+
+ call  DB_1a_block_component_extraction               after block design is finished     
+
+ call  DB_1b_rtl_component_extraction                 after HDL design is finished       
+
+ call  DB_2_get_memory_data_and_bitstream $BIT_PATH   after implementation               
+          ($BIT_PATH  only needs to specified                                            
+           when another tool (e.g. Vitis, SDK) has                                       
+           modified the bitstream post-implementation)                                   
+
+ call  DB_PT_run_python3_config_generator $SCRIPT     to make config files               
+
+ call  DB_3_generate_bitstreams                       to make diversified bitstreams     
+
+ call  DB_HELP                                        for this list                      
+*****************************************************************************************
+\end{Verbatim}
+
+Figure~\ref{fig:db_swflow_vleft} illustrates how these calls integrate into the regular Vivado flow.
+
+\esrPNG{0.7}{db_swflow_vleft}{DiveBits-enhanced flow}
+
+\subsection{Set path for project-specific DiveBits data}
+
+By default, when using DiveBits inside a newly created Vivado project, DiveBits will store all its work data in the directory
+\\\esrpath{\$PROJECT\_FOLDER/DiveBits\_data/}, i.e. as a subfolder of the Vivado project path. If you'd like the data to be stored further up in the hierarchy (e.g. for versioning purposes) or somewhere else, you can specify that path with
+\\\esrtype{> DB\_set\_DiveBits\_data\_path  \$DATA\_PATH}
+
+
+\subsection{Design Entry with DiveBits IP}
+
+DiveBits supports two types of design entry:
+
+\begin{itemize}
+	
+	\item \emph{Block Design} (preferred): DiveBits provides all its components as block IP for the Vivado IP integrator. This is the recommended way of using DiveBits, as it allows simpler connectivity between DiveBits components and a higher degree of automation of the DiveBits IP flow. To add the complete repository of Block IP components to your project's IP catalog, call\\\esrtype{DB\_0a\_add\_block\_ip\_repo}.
+	
+	\item \emph{RTL}: DiveBits provides the majority of its components as VHDL entities that can be instantiated in a design's top-level IP file (see below for integrating a DiveBits HDL component lower in the hierarchy). To add the DiveBits VHDL sources to your Vivado project, call\\\esrtype{DB\_0b\_add\_rtl\_ip\_repo}.
+	
+\end{itemize}
+
+\subsubsection{Adding \textit{divebits\_config}}
+
+\esrPNG{0.4}{divebits_config}{divebits\_config}
+
+Every DiveBits design, no matter if block design or RTL flow, needs exactly~1 \emph{divebits\_config} component (see Figure~\ref{fig:divebits_config}). This component holds the BlockRAM that stores an individual bitstream's diversified data and distributes it to the data-receiving DiveBits components. Make sure to add it first to your design. While all configuration parameters for this block/entity are preset with default values, you need to make a few important design considerations:
+
+% image
+\paragraph{\textbf{Release wiring and polarity}}
+\phantom{X}\\
+DiveBits configuration only operates once at FPGA startup. After the bitstream has been loaded and FPGA operation begins, the \emph{divebits\_config} component distributes data over the DiveBits serial interconnect. Only after all DiveBits data has been distributed, other components should start operating. For this purpose, \emph{divebits\_config} provides as signal \esrtype{sys\_release\_out} which changes state to release system operation.
+
+\emph{divebits\_config} can start operation automatically after the FPGA begins operation (Global~Set/Reset), however in most designs, it will itself wait for a release on its input \esrtype{sys\_release\_in}. There are two common usage scenarios:
+
+\begin{itemize}
+	\item \esrtype{sys\_release\_in} receives a \emph{Locked} signal from a clock manager, which is usually directly connected to a system reset manager. The clock manager indicates with it that the system clock is stable and system operation can safely begin. Instead, \emph{divebits\_config} now consumes this signal and begins operation, and its \esrtype{sys\_release\_out} hands down the locked state to the reset manager after the DiveBits configuration is done.
+	
+	\item \esrtype{sys\_release\_in} receives a system \emph{Reset} signal and holds the rest of the system in reset with its \esrtype{sys\_release\_out} until it is done.
+\end{itemize}
+
+\emph{divebits\_config} holds the \esrtype{sys\_release\_out} for a configured number of cycles after completing operation, thereby ensuring that all data-receiving components have completed processing the data, as well as that constant signals have reached a stable state if the DiveBits clock domain is asynchronous to the system clock domain (see below). The block IP option \emph{Release Delay Cycles} and the corresponding VHDL generic \esrtype{DB\_RELEASE\_DELAY\_CYCLES} can be set between \esrtype{20} and \esrtype{259} cycles. The default of \esrtype{20} is considered safe.
+
+The meaning and polarity of \emph{Release} is opposite to \emph{Reset}: When the signal is ACTIVE, the system is released to operate. The default polarity of \esrtype{ACTIVE\_HIGH} (i.e. set for a high-active clock manager locking signal or a low-active reset signal) can be changed in the block parameter \emph{Release~Active~High} or the VHDL generic \emph{DB\_RELEASE\_ACTIVE\_HIGH}.
+
+\paragraph{\textbf{DiveBits topology and CRC check}}
+\phantom{X}\\
+DiveBits components can be connected in two types of topologies:
+
+\begin{itemize}
+	\item In a classic \emph{bus} topology, the \emph{DiveBits\_out} port of \emph{divebits\_config} is connected to the \emph{DiveBits\_in} port of all data-receiving components. This is the least resource-intensive topology, however depending on the number of receiving components, a slightly higher fanout results.
+	
+	\item The components can also be connected in a \emph{daisy-chain} topology, where each component's \emph{DiveBits\_in} is connected to another component's \emph{DiveBits\_out}. The data is routed through a receiving shift register in each component. The order of connection of the components does not matter. The last component in the chain needs to connect back to \emph{divebits\_config}'s \emph{DiveBits\_Feedback} port.
+	
+	The main purpose of this topology is that \emph{divebits\_config} can check the integrity of the data stream after it has passed all components. It computes a \emph{CRC32} checksum on the received data and only releases the \esrtype{sys\_release\_out} when the checksum matches. Otherwise, it restarts the DiveBits configuration process.
+	
+	To active the CRC32 check, select the block IP option \emph{Daisy chain input with CRC check} or set the VHDL generic \esrtype{DB\_DAISY\_CHAIN\_CRC\_CHECK} to \esrtype{true}.
+\end{itemize}
+
+\paragraph{\textbf{Clocking considerations}}
+\phantom{X}\\
+All DiveBits component need to be connected to the same clock as the interconnect communication is clock-synchronous.
+
+In the most straightforward usage, the DiveBits components use the same clock as all the design components connected to them. However, complex designs might use multiple independent clocks that could be phase-synchronous or asynchronous.
+
+Furthermore, if timing closure is hard, DiveBits components can be put on a comparably slow clock to ease timing pressure. As they are only communicating hundreds, maybe low thousands, of bits once at FPGA startup, the incurred startup delay is often non-critical.
+
+If the DiveBits components have different clocks than some or all components connected to them, make sure to declare the corresponding clocks asynchronous to each other. The delayed release mechanism will ensure that all output signals are settled and no metastability ensues. 
+
+\subsubsection{Adding data-receiving \emph{DiveBits} components}
+
+All other DiveBits components can be added and connected as required in the bus or daisy-chain topologies. While the graphical block design only requires a mouse click-and-drag to connect to components, in the RTL flow two separate signals \esrtype{db\_clock} and \esrtype{db\_data} need to connected between components. Currently, the following components are available:
+
+\begin{itemize}
+	\item \emph{divebits\_constant\_vector}: (Block IP and VHDL) Provides a single constant of configurable width (1-64 bits) to other system components.
+	\item \emph{divebits\_4\_constant\_vectors}: (Block IP and VHDL) Provides four constants of the same configurable width (1-64 bits) to other system components.
+	\item \emph{divebits\_16\_constant\_vectors}: (Block IP and VHDL) Provides 16 constants of the same configurable width (1-64 bits) to other system components.
+	\item \emph{divebits\_BlockRAM\_init}: (Block IP and VHDL) Operates as a master for a native BlockRAM interface and initializes a BlockRAM of arbitrary size and data width through one of its two ports. The other port can therefore be used by the system to retrieve constant ROM data.
+	\item \emph{divebits\_AXI\_4\_constant\_registers}: (Block IP only) Constitutes a memory-mapped AXI Subordinate with 4 read-only 32-bit data registers. Can provide diversified data to a CPU system without re-compiling the software.
+	\item \emph{divebits\_AXIS\_Master}: (Block IP only) An AXI Stream master that can write up to 256 data words into an AXI stream. Data width is configurable between 32 and 1024 in power-of-two steps.
+	\item \emph{divebits\_AXI\_Master\_ReadWrite}: (Block IP only) An AXI master that can replace a CPU for simple configuration tasks. Can execute diversified programs composed of a simple set of opcodes to:
+			
+			\begin{itemize}
+				\item Write values to memory-mapped AXI subordinates.
+				\item Copy values between AXI subordinates.
+				\item Repeatedly read from an AXI subordinate address (polling) until specific bits are set or cleared. Wait cycles can be configured so the polling doesn't clog the interconnect.
+			\end{itemize}
+	\item \emph{divebits\_AXI\_Master\_WriteOnly}: (Block IP only) A simpler AXI master that can only write to memory-mapped AXI addresses. Can repeat writes on bus errors, so for example a full \emph{AXI~Uartlite} FIFO can be handled without explicit reads.
+	\end{itemize}
+	
+Connecting the system-side of these components obviously differs for each component, as does the YAML configuration. See Section~\ref{sec:dbcomps} for detailed descriptions.
+
+All data-receiving components share a set of configuration parameters/VHDL generics:
+
+\begin{itemize}
+	\item \emph{DB Address}/\esrtype{DB\_ADDRESS}: The unique DiveBits address of this component in the design. \emph{divebits\_config} is always address \esrtype{0}, all other components can be assigned addresses between \esrtype{1} and \esrtype{65534/0xFFFE}.
+	
+	Addresses don't \textsl{have} to be set explicitly in the block design flow, as the next flow step can assign unique addresses automatically. You don't have to know the address to specify diversified data, that is done by block name.
+	
+	The RTL flow is not able to do automatic re-assignment of VHDL generics because of Vivado's limitations. You have to assign each DiveBits component a unique \esrtype{DB\_ADDRESS} value, or the DiveBits flow will abort and ask you to fix it.
+	
+	\item \emph{Daisy-Chaining possible}/\esrtype{DB\_DAISY\_CHAIN}: This parameter is somewhat cosmetic as it shuts off the \esrtype{DiveBits\_Out} port when unchecked/set to \esrtype{false}. It doesn't have any effect in the RTL flow. Since Synthesis will optimize away any unused outputs anyway, no resources are saved by changing the option.
+	
+	\item \emph{Enable Local Release Signal}/\esrtype{DB\_LOCAL\_RELEASE}: In large-scale designs, global synchronous resets might not be feasible. Therefore, each data-receiving component can provide a local reset/release signal named \esrtype{local\_release\_out} which releases a defined number of cycles after the component's data was received. The number of wait cycles is specified with \emph{Local Release Delay Cycles}/\esrtype{DB\_RELEASE\_DELAY\_CYCLES} and the polarity can be set with \emph{Local Release High Active}/\esrtype{DB\_RELEASE\_HIGH\_ACTIVE}. 
+
+\end{itemize}
+
+
+\subsection{Extraction of DiveBits component data, YAML template file}
+
+After design entry has finished, call either
+
+\esrtype{> DB\_1a\_block\_component\_extraction}
+
+for the block design flow or
+
+\esrtype{> DB\_1b\_rtl\_component\_extraction}
+
+for the RTL flow. The call accomplishes the following steps:
+
+\begin{itemize}
+	\item It identifies all DiveBits components added during design entry by type, name, DiveBits address and component-specific parameters.
+	
+	\item If a DB Address has been used twice, the block design flow will automatically re-assign a unique address.
+	
+	The RTL flow can't do that, so it aborts with a suggestion to the designer to re-assign addresses and re-execute the command.
+	
+	\item Based on the component parameters, DiveBits calculates how many configuration bits of diversified data need to be stored in BlockRAM and how many BlockRAMs are required. The number of BlockRAMs required is an implementation parameter for \emph{divebits\_config} and needs to be changed before synthesis if it is different from the default value of~\esrtype{1}.
+	
+	For the block design flow, DiveBits can automatically adjust the requisite parameter,\\\esrtype{DB\_NUM\_OF\_32K\_ROMS}.
+	
+	The RTL flow, again, cannot do this. It aborts and informs the user to set the VHDL generic \esrtype{DB\_NUM\_OF\_32K\_ROMS} to the required value and re-execute the command.
+	
+	\item All structural data that is required for later processing is stored in the file\\\esrpath{\$DIVEBITS\_DATA/1\_extracted\_components/db\_components.yaml}
+	
+	\item A template YAML file that illustrates how to specify parameters for the various components is placed in\\\esrpath{\$DIVEBITS\_DATA/2\_config\_file\_template/db\_template.yaml}
+	
+	This file is also later provided to user-written Python programs and can be used to import a skeleton data structure that can then be populated with diversification data.
+	
+	
+\end{itemize}
+
+\subsection{Bitstream implementation}
+
+After the data extraction is finished (without RTL flow abort due to address conflict or wrong number of config BlockRAMs), regular time-intensive bitstream generation can be initiated.
+
+If you are using Vitis or another tool to build processor binaries that will be included in BlockRAM locations in the bitstream, please continue with that step. You will be able to specify the binary-augmented bitstream instead of the implementation-result bitstream in the next step. 
+
+\subsection{Bitstream copy and extraction of config BRAM location(s)}
+
+After bitstream implementation, call
+
+\esrtype{> DB\_2\_get\_memory\_data\_and\_bitstream \$BIT\_PATH}
+
+This call accomplishes two tasks:
+\begin{itemize}
+	\item It opens the implementation result to retrieve the location of the BlockRAM(s) inside the \emph{divebits\_config} component. With that information, an \emph{MMI} file is built. The MMI file is required later to insert the configuration bits into the correct bitstream location.
+	
+	\item DiveBits makes a private copy of the bitstream produced by the implementation run. with the optional \$BIT\_PATH parameter you can specify a different bitstream than the one in the implementation run folder. As mentioned before, the purpose is to specify a bitstream that has been augmented with other data (like software binaries) after implementation. 
+\end{itemize}
+
+
+\subsection{Provision/generation of YAML configuration files}
+
+Before initiating the generation of diversified bitstreams, the corresponding YAML configuration files need to be provided in\\\esrpath{\$DIVEBITS\_DATA/3\_bitstream\_config\_files/}
+
+(one YAML file for each bitstream). The YAML files have to follow the basic structure shown in the generated template file and provide component-specific data structures as detailed in Section~\ref{sec:dbcomps}.
+
+How the files are provided and generated is up to the FPGA designer, but the collection of DiveBits Tcl commands include one to call a Python script from the console:
+
+\esrtype{> DB\_PT\_run\_python3\_config\_generator \$SCRIPT}
+
+CAUTION: This wrapper command is the only way that Python scripts should be called from the Vivado Tcl console, as it bypasses the inadequate Python installation that Vivado uses internally and instead calls the system-installed Python~3 with the added \emph{PyYAML} and \emph{bitstring} packages.
+
+Furthermore, it automatically adds the two call parameters
+\\\esrtype{-t \$TEMPLATE\_FILE\_DIR  -c \$BITSTREAM\_CONFIG\_DIR}
+
+that tell the script where to find the template and where to put the configuration files.
+
+\subsection{Generation of diversified bitstreams}
+
+Based on the provided or generated configuration files, diversified bitstreams can now be generated by calling
+
+\esrtype{> DB\_3\_generate\_bitstreams}
+
+The resulting files will be placed in\\\esrpath{\$DIVEBITS\_DATA/7\_output\_bitstreams/}
+
+and can be used for download to the target(s).
+
+
+\newpage
+\section{List of data-receiving DiveBits components}
+\label{sec:dbcomps}
+
+In this section, you find all data-receiving DiveBits components with their function-specific parameters/generics, ports and YAML configuration structures.
+
+	\subsection{Block and RTL components}
+	
+	\subsubsection{divebits\_constant\_vector}
+	\esrPNG{0.4}{divebits_constant_vector}{divebits\_constant\_vector}
+	
+		Provides a single constant bit vector of configurable length.
+	
+		\paragraph{\textbf{Parameters/Generics}}
+		\begin{itemize}
+			\item \emph{Vector Width}/\esrtype{DB\_VECTOR\_WIDTH} specifies the width of the vector between 1 and 64 bit.
+			\item \emph{Default Value}/\esrtype{DB\_DEFAULT\_VALUE} specifies a default value shown if the component is not reconfigured. As this is of type integer, only 31-bit wide positive values can be specified at maximum. 
+		\end{itemize}
+
+		\paragraph{\textbf{Signals}}
+		\begin{itemize}
+			\item \esrtype{Vector\_Out} is the configurable-width constant vector output
+		\end{itemize}
+
+		\paragraph{\textbf{YAML configuration}}
+\begin{Verbatim}[frame=single,fontsize=\normalsize]
+- BLOCK_PATH: /divebits_constant_vector_1
+  CONFIGURABLE:
+    VALUE: 0x42
+\end{Verbatim}
+
+A decimal or hexadecimal value can be specified.
+
+
+
+\newpage
+	\subsubsection{divebits\_4\_constant\_vectors}
+	\esrPNG{0.4}{divebits_4_constant_vectors}{divebits\_4\_constant\_vectors}
+	
+	Provides 4 constant bit vectors of (identical) configurable length.
+	
+		\paragraph{\textbf{Parameters/Generics}}
+		\begin{itemize}
+			\item \emph{Vector Width}/\esrtype{DB\_VECTOR\_WIDTH} specifies the width of the vectors between 1 and 64 bit.
+			\item \emph{Default Value All}/\esrtype{DB\_DEFAULT\_VALUE\_ALL} specifies a default values shown by all vectors if the component is not reconfigured. As this is of type integer, only 31-bit wide positive values can be specified at maximum. 
+			\item \emph{Default Value 00..03}/\esrtype{DB\_DEFAULT\_VALUE\_[00..03]} specify default values for each vector shown if the component is not reconfigured. The same integer limitation applies
+		\end{itemize}
+
+		\paragraph{\textbf{Signals}}
+		\begin{itemize}
+			\item \esrtype{Vector\_[00..03]} are the configurable-width constant vector outputs
+		\end{itemize}
+
+		\paragraph{\textbf{YAML configuration}}
+\begin{Verbatim}[frame=single,fontsize=\normalsize]
+- BLOCK_PATH: /divebits_4_constant_0
+  CONFIGURABLE:
+    VALUE_00: 0xDEADBEEF
+    VALUE_01: 0x0815
+    VALUE_02: 0
+    VALUE_03: 4711
+\end{Verbatim}
+
+Decimal or hexadecimal values can be specified.
+
+
+
+\newpage
+		\subsubsection{divebits\_16\_constant\_vectors}
+	
+	Provides 16 constant bit vectors of (identical) configurable length.
+	
+		\paragraph{\textbf{Parameters/Generics}}
+		\begin{itemize}
+			\item \emph{Vector Width}/\esrtype{DB\_VECTOR\_WIDTH} specifies the width of the vectors between 1 and 64 bit.
+			\item \emph{Default Value All}/\esrtype{DB\_DEFAULT\_VALUE\_ALL} specifies a default values shown by all vectors if the component is not reconfigured. As this is of type integer, only 31-bit wide positive values can be specified at maximum. 
+			\item \emph{Default Value 00..15}/\esrtype{DB\_DEFAULT\_VALUE\_[00..15]} specify default values for each vector shown if the component is not reconfigured. The same integer limitation applies
+		\end{itemize}
+
+		\paragraph{\textbf{Signals}}
+		\begin{itemize}
+			\item \esrtype{Vector\_[00..15]} are the configurable-width constant vector outputs
+		\end{itemize}
+
+		\paragraph{\textbf{YAML configuration}}
+\begin{Verbatim}[frame=single,fontsize=\normalsize]
+- BLOCK_PATH: /divebits_4_constant_0
+  CONFIGURABLE:
+    VALUE_00: 0xA0000000
+    VALUE_01: 42
+      [..]
+    VALUE_15: 0xA000000F
+\end{Verbatim}
+
+Decimal or hexadecimal values can be specified.
+
+
+	\subsubsection{divebits\_BlockRAM\_init}
+	\esrPNG{0.4}{divebits_BlockRAM_init}{divebits\_BlockRAM\_init}
+	
+	A write master that can be connected to one side of a dual-port BlockRAM to initialize it with data.
+	
+		\paragraph{\textbf{Parameters/Generics}}
+		\begin{itemize}
+			\item \emph{BRAM Port Data Width}/\esrtype{DB\_BRAM\_DATA\_WIDTH} specifies the actual data width being stored
+			\item \emph{BRAM Port Address Width}/\esrtype{DB\_BRAM\_ADDRESS\_WIDTH} specifies the actual address width and consequently the memory depth.
+			\item \emph{BRAM Controller Mode}/\esrtype{DB\_BRAMCTRL\_MODE} is a boolean that, when selected, extends the actual address width to 32bit and the actual data width to the next power of 2. This is required in block designt for the IP Integrator to recognize the component as a BRAM Controller.
+		\end{itemize}
+
+		\paragraph{\textbf{Signals}}
+		
+		\begin{itemize}
+			\item \esrtype{CLK},\esrtype{ADDR},\esrtype{DOUT},\esrtype{WEN},\esrtype{RST} are the common output signals for synchronous BlockRAM write control and compose the BRAM interface.
+		\end{itemize}
+
+		\paragraph{\textbf{YAML configuration}}
+\begin{Verbatim}[frame=single,fontsize=\normalsize]
+- BLOCK_PATH: /divebits_BlockRAM_init_0
+  CONFIGURABLE:
+    default_value: 0xffffffff
+    ranges:
+    - from: 0x200
+      to: 0x2ff
+      value: 0xAA000077
+    words:
+      0x0: 42
+      0x1: 747
+      0x1ff: 0xDEADBEEF
+\end{Verbatim}
+
+\esrtype{CONFIGURABLE} for the \emph{{divebits\_BlockRAM\_init}} component is a dictionary (key-value store) with the three keys \esrtype{default\_value}, \esrtype{ranges} and \esrtype{words}. All addresses and data words can be specified in decimal or hexadecimal.
+
+\esrtype{default\_value} holds the value for all addresses that are not otherwise specified.
+
+\esrtype{words} is a nested dictionary where specific data word addresses can be assigned data values.
+
+\esrtype{ranges} is a list, where each list element is a dictionary with the three keys three keys \esrtype{from}, \esrtype{to} and \esrtype{value}. Each set allows to specify an address range that is initialized with the same word.
+
+
+
+
+\newpage
+	\subsection{Block-only components}
+	
+	
+
+	\subsubsection{divebits\_AXI\_4\_constant\_registers}
+	\esrPNG{0.4}{divebits_AXI_4_constant_registers}{divebits\_AXI\_4\_constant\_registers}
+	
+	This is a an AXI Subordinate component that provides 4 constant, memory-mapped 32-bit registers. It can provided diversified data to a CPU system without re-compiling the software.
+	
+		\paragraph{\textbf{Parameters/Generics}}
+		\begin{itemize}
+			\item \emph{Default Value}/\esrtype{DB\_DEFAULT\_VALUE} specifies an identical 32-bit default value for all 4 registers.
+		\end{itemize}
+
+		\paragraph{\textbf{Signals}}		
+		\begin{itemize}
+			\item \esrtype{S00\_AXI} is an \emph{AXI4Lite} Subordinate interface with all the requisite signals.
+		\end{itemize}
+
+		\paragraph{\textbf{YAML configuration}}
+\begin{Verbatim}[frame=single,fontsize=\normalsize]
+- BLOCK_PATH: /divebits_AXI_4_constant_registers_0
+  CONFIGURABLE:
+    REGISTER_00_VALUE: 0xA380
+    REGISTER_01_VALUE: 0xB787
+    REGISTER_02_VALUE: 314159
+    REGISTER_03_VALUE: 2718
+\end{Verbatim}
+
+Values for all four 32-Bit registers can be specified in decimal or hexadecimal.
+		
+		
+
+	\subsubsection{divebits\_AXIS\_Master}
+	\esrPNG{0.4}{divebits_AXIS_Master}{divebits\_AXIS\_Master}
+	
+	An AXI Stream Master that can write a configurable number of words into an AXI Stream.
+	
+		\paragraph{\textbf{Parameters/Generics}}
+		\begin{itemize}
+			\item \emph{Data Word Width}/\esrtype{DB\_DATA\_WIDTH} can be set to any power of 2 from 32 to 1024.
+			\item \emph{Number Of Data Words}/\esrtype{DB\_DATA\_WIDTH} can be set to any power of 2 from 32 to 256. This defines the storage depth, however less words than set here can be configured.
+		\end{itemize}
+
+		\paragraph{\textbf{Signals}}
+		\begin{itemize}
+			\item \esrtype{M00\_AXIS} is an \emph{AXI4 Stream} Master interface with all the requisite signals.
+		\end{itemize}
+
+		\paragraph{\textbf{YAML configuration}}
+\begin{Verbatim}[frame=single,fontsize=\normalsize]
+- BLOCK_PATH: /divebits_AXIS_Master_0
+  CONFIGURABLE:
+    WORD_COUNT: 3
+    DATA:
+      0:
+        TDATA: 0xdeadbeef
+        TLAST: false
+      1:
+        TDATA: 0xc0ffee77
+        TLAST: false
+      2:
+        TDATA: 0xbadc0c0a
+        TLAST: true
+\end{Verbatim}
+\esrtype{WORD\_COUNT} has to be explicitly set to a number smaller or equal than the specified storage size. \esrtype{DATA} is a dictionary with keys numbered from \esrtype{0} to \esrtype{WORD\_COUNT}-1. Each key is itself a dictionary with the values for \esrtype{TDATA} (decimal or hexadecimal) and \esrtype{TLAST} (boolean).
+
+		
+	\subsubsection{divebits\_AXI\_Master\_ReadWrite}
+	\esrPNG{0.4}{divebits_AXI_Master_ReadWrite}{divebits\_AXI\_Master\_ReadWrite}
+	
+An AXI master that can replace a CPU for simple configuration tasks. Can execute diversified programs composted of a simple set of opcodes to:
+			
+			\begin{itemize}
+				\item Write values to memory-mapped AXI subordinates.
+				\item Copy values between AXI subordinates.
+				\item Repeatedly read from an AXI subordinate address (polling) until specific bits are set or cleared. Wait cycles can be configured so the polling doesn't clog the interconnect.
+		\end{itemize}
+			
+		\paragraph{\textbf{Parameters/Generics}}
+		\begin{itemize}
+			\item \emph{Number Of AXI Master Instruction Words}/\esrtype{DB\_NUM\_CODE\_WORDS} can be set to 64, 128 or 256 instruction words.
+			\item \emph{Wait And Repeat Access After Bus Error}/\esrtype{DB\_REPEAT\_AFTER\_BUS\_ERROR} is a boolean that determines if an operation is tried again after a bus error or if the Master freezes.
+			\item \emph{Bitwidth of Repeat Waitcycles counter}/\esrtype{DB\_REPEAT\_WAITCYCLES\_WIDTH} can be specified from 3 to 20. If the previous option is activated, the master waits for (2\^WIDTH) cycles before trying again.
+		\end{itemize}
+		
+		\paragraph{\textbf{Signals}}
+		\begin{itemize}
+			\item \esrtype{M00\_AXI} is an \emph{AXI4Lite} Master interface with all the requisite signals.
+			\item \esrtype{READ\_ERROR} signals a bus read error happened.
+			\item \esrtype{WRITE\_ERROR} signals a bus write error happened.
+		\end{itemize}
+
+		\paragraph{\textbf{YAML configuration}}
+\begin{Verbatim}[frame=single,fontsize=\normalsize]
+- BLOCK_PATH: /divebits_AXI_Master_0
+  CONFIGURABLE:
+    OPCODE_COUNT: 5
+    CODE:
+      0:
+        OPCODE: SET_BASE_ADDR
+        ADDR: 0x40600000
+      1:
+        OPCODE: WRITE_FROM_CODE
+        ADDR: 4
+        DATA: 65
+      2:
+        OPCODE: READ_TO_BUFFER
+        ADDR: 0
+      3:
+        OPCODE: WRITE_FROM_BUFFER
+        ADDR: 4
+      4:
+        OPCODE: READ_CHECK_WAIT
+        ADDR: 8
+        CHECK_MASK: 0x0000000F
+        CHECK_DATA: 0x00000003
+				
+\end{Verbatim}
+
+\esrtype{OPCODE\_COUNT} has to be set to the amount of following opcodes.
+
+\esrtype{CODE} is a dictionary of multiword opcode keys numbered from \esrtype{0} to \esrtype{OPCODE\_COUNT}-1. Each entry is another dictionary of opcode data. The available opcodes are:
+\begin{itemize}
+	\item \esrtype{SET\_BASE\_ADDR} sets an address base for all following relative address operations with the key \esrtype{ADDR}. This is useful to read and configure peripherals with a base address and register offsets.
+	\item \esrtype{READ\_TO\_BUFFER} reads from the specified \esrtype{ADDR} offset into a buffer register.
+	\item \esrtype{WRITE\_FROM\_BUFFER} writes to the specified \esrtype{ADDR} offset from the buffer register.
+	\item \esrtype{WRITE\_FROM\_CODE} writes \esrtype{DATA} to the specified \esrtype{ADDR} offset.	
+	\item \esrtype{READ\_CHECK\_WAIT} reads from the specified \esrtype{ADDR} offset and checks if all bits set in \esrtype{CHECK\_MASK} are identical with the same bits in \esrtype{CHECK\_DATA}. In the example shown above, the master reads from address offset 8 and then only checks the lower 4 bit of that read against 0x3. If they are not identical, it loops an reads again until they are.
+\end{itemize}
+
+
+
+	\subsubsection{divebits\_AXI\_Master\_WriteOnly}
+	\esrPNG{0.4}{divebits_AXI_Master_WriteOnly}{divebits\_AXI\_Master\_WriteOnly}
+	
+A simpler AXI master that can only write to memory-mapped AXI addresses. Can repeat writes on bus errors, so for example a full \emph{AXI~Uartlite} FIFO can be handled without explicit reads.	
+	
+		\paragraph{\textbf{Parameters/Generics}}
+		\begin{itemize}
+			\item \emph{Number Of AXI Master Instruction Words}/\esrtype{DB\_NUM\_CODE\_WORDS} can be set to 64, 128 or 256 instruction words.
+			\item \emph{Wait And Repeat Access After Bus Error}/\esrtype{DB\_REPEAT\_AFTER\_BUS\_ERROR} is a boolean that determines if an operation is tried again after a bus error or if the Master freezes.
+			\item \emph{Bitwidth of Repeat Waitcycles counter}/\esrtype{DB\_REPEAT\_WAITCYCLES\_WIDTH} can be specified from 3 to 20. If the previous option is activated, the master waits for (2\^WIDTH) cycles before trying again.
+		\end{itemize}
+		
+		\paragraph{\textbf{Signals}}
+		\begin{itemize}
+			\item \esrtype{M00\_AXI} is an \emph{AXI4Lite} Write Master interface with all the requisite signals.
+			\item \esrtype{WRITE\_ERROR} signals a bus write error happened.
+		\end{itemize}
+
+		\paragraph{\textbf{YAML configuration}}
+		\phantom{X}\\
+		%
+\begin{Verbatim}[frame=single,fontsize=\normalsize]
+- BLOCK_PATH: /divebits_AXI_Master_WriteOnly_0
+  CONFIGURABLE:
+    OPCODE_COUNT: 3
+    CODE:
+      0:
+        OPCODE: SET_BASE_ADDR
+        ADDR: 0x40600000
+      1:
+        OPCODE: WRITE_FROM_CODE
+        ADDR: 4
+        DATA: 65
+      2:
+        OPCODE: WRITE_FROM_BUFFER
+        ADDR: 4
+\end{Verbatim}
+
+\esrtype{OPCODE\_COUNT} has to be set to the amount of following opcodes.
+
+\esrtype{CODE} is a dictionary of multiword opcode keys numbered from \esrtype{0} to \esrtype{OPCODE\_COUNT}-1. Each entry is another dictionary of opcode data. The available opcodes are:
+\begin{itemize}
+	\item \esrtype{SET\_BASE\_ADDR} sets an address base for all following relative address operations with the key \esrtype{ADDR}. This is useful to read and configure peripherals with a base address and register offsets.
+	\item \esrtype{WRITE\_FROM\_CODE} writes \esrtype{DATA} to the specified \esrtype{ADDR} offset.	
+	\item \esrtype{WRITE\_FROM\_BUFFER} writes the last written \esrtype{DATA} again to the specified \esrtype{ADDR} offset from the buffer register.
+\end{itemize}
+		
+%\section{Advanced usage}
+%
+	%\subsection{Nuts and Bolts: How DiveBits works}
+%
+	%\subsection{How to build your own DiveBits components}
+	%
+	%\subsubsection{The easy way: Integrating existing DiveBits IP into your own IP}
+	%
+	%\paragraph{Block IP repository settings}
+%
+	%\subsubsection{The hard way: Building a DiveBits component from scratch}
+%
+	%\paragraph{Block IP repository settings}
+%
+%\section{-----------------------------}
+
+
+
+
+
+	
+\end{document}

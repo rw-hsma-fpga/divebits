@@ -11,6 +11,7 @@
 !divebits_demo_project.tcl
 !LICENSE
 !README.md
+!DiveBits_UserManual.pdf
 
 # not the existing folders and data below
 !block_ip_xil/
@@ -28,6 +29,10 @@
 !hdl_ip_xil/
 !hdl_ip_xil/*
 !hdl_ip_xil/**
+
+!docsrc/
+!docsrc/*
+!docsrc/**
 
 #Python caches
 divebits_tools/__pycache__/
