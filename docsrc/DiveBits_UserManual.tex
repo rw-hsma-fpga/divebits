@@ -255,7 +255,10 @@ To receive the UART output
 To use the demo for another target board and FPGA, the demo generation must be executed step by step instead of through the single-command flow, so that the FPGA device and various pin constraints can be modified:
 
 \begin{itemize}
-	\item Call \esrtype{DEMODB\_HELP} in the Tcl console to list all the required commands again.
+
+	\item Execute the Tcl file \esrpath{\$DIVEBITS/divebits\_demo\_project.tcl} either throug\\\esrmenu{Tools > Run Tcl Script...} or with the console's \esrtype{source} command (replace \$DIVEBITS with the DiveBits installation directory).
+
+	\item The console will show the sequence of required commands, which you can recall anytime with \esrtype{DEMODB\_HELP}.
 	
 	\item Call \esrtype{DEMODB\_1\_create\_project\_and\_block\_design  ZEDBOARD}
 	      
@@ -342,7 +345,7 @@ With the execution of the script, all DiveBits commands required for the extensi
 
 Figure~\ref{fig:db_swflow_vleft} illustrates how these calls integrate into the regular Vivado flow.
 
-\esrPNG{0.7}{db_swflow_vleft}{DiveBits-enhanced flow}
+\esrPNG{0.8}{db_swflow_vleft}{DiveBits-enhanced flow}
 
 \subsection{Set path for project-specific DiveBits data}
 
@@ -350,7 +353,7 @@ By default, when using DiveBits inside a newly created Vivado project, DiveBits 
 \\\esrpath{\$PROJECT\_FOLDER/DiveBits\_data/}, i.e. as a subfolder of the Vivado project path. If you'd like the data to be stored further up in the hierarchy (e.g. for versioning purposes) or somewhere else, you can specify that path with
 \\\esrtype{> DB\_set\_DiveBits\_data\_path  \$DATA\_PATH}
 
-
+\newpage
 \subsection{Design Entry with DiveBits IP}
 
 DiveBits supports two types of design entry:
@@ -367,12 +370,14 @@ DiveBits supports two types of design entry:
 
 \esrPNG{0.4}{divebits_config}{divebits\_config}
 
-Every DiveBits design, no matter if block design or RTL flow, needs exactly~1 \emph{divebits\_config} component (see Figure~\ref{fig:divebits_config}). This component holds the BlockRAM that stores an individual bitstream's diversified data and distributes it to the data-receiving DiveBits components. Make sure to add it first to your design. While all configuration parameters for this block/entity are preset with default values, you need to make a few important design considerations:
+Every DiveBits design, no matter if block design or RTL flow, needs exactly \textit{one} \emph{divebits\_config} component (see Figure~\ref{fig:divebits_config}). This component holds the BlockRAM that stores an individual bitstream's diversified data and distributes it to the data-receiving DiveBits components. Make sure to add it first to your design. While all configuration parameters for this block/entity are preset with default values, you need to make a few important design considerations:
 
 % image
 \paragraph{\textbf{Release wiring and polarity}}
 \phantom{X}\\
-DiveBits configuration only operates once at FPGA startup. After the bitstream has been loaded and FPGA operation begins, the \emph{divebits\_config} component distributes data over the DiveBits serial interconnect. Only after all DiveBits data has been distributed, other components should start operating. For this purpose, \emph{divebits\_config} provides as signal \esrtype{sys\_release\_out} which changes state to release system operation.
+DiveBits configuration only operates once at FPGA startup. After the bitstream has been loaded and FPGA operation begins, the \emph{divebits\_config} component distributes data over the DiveBits serial interconnect. Only after all DiveBits data has been distributed, other components should start operating. For this purpose, \emph{divebits\_config} provides a signal \esrtype{sys\_release\_out} which changes state to release system operation. Figure~\ref{fig:db_config_setup} shows a detailed illustration of \emph{divebits\_config} connectivity.
+
+\esrPNG{0.6}{db_config_setup}{\emph{divebits\_config} connectivity.}
 
 \emph{divebits\_config} can start operation automatically after the FPGA begins operation (Global~Set/Reset), however in most designs, it will itself wait for a release on its input \esrtype{sys\_release\_in}. There are two common usage scenarios:
 
@@ -388,16 +393,18 @@ The meaning and polarity of \emph{Release} is opposite to \emph{Reset}: When the
 
 \paragraph{\textbf{DiveBits topology and CRC check}}
 \phantom{X}\\
-DiveBits components can be connected in two types of topologies:
+DiveBits components can be connected in two types of topologies (see Figure~\ref{fig:db_topologies}).
 
 \begin{itemize}
 	\item In a classic \emph{bus} topology, the \emph{DiveBits\_out} port of \emph{divebits\_config} is connected to the \emph{DiveBits\_in} port of all data-receiving components. This is the least resource-intensive topology, however depending on the number of receiving components, a slightly higher fanout results.
 	
 	\item The components can also be connected in a \emph{daisy-chain} topology, where each component's \emph{DiveBits\_in} is connected to another component's \emph{DiveBits\_out}. The data is routed through a receiving shift register in each component. The order of connection of the components does not matter. The last component in the chain needs to connect back to \emph{divebits\_config}'s \emph{DiveBits\_Feedback} port.
 	
+\esrPNG{1.0}{db_topologies}{bus topology (left) and daisy-chain topology with CRC (right)}	
+	
 	The main purpose of this topology is that \emph{divebits\_config} can check the integrity of the data stream after it has passed all components. It computes a \emph{CRC32} checksum on the received data and only releases the \esrtype{sys\_release\_out} when the checksum matches. Otherwise, it restarts the DiveBits configuration process.
 	
-	To active the CRC32 check, select the block IP option \emph{Daisy chain input with CRC check} or set the VHDL generic \esrtype{DB\_DAISY\_CHAIN\_CRC\_CHECK} to \esrtype{true}.
+	To activate the CRC32 check, select the block IP option \emph{Daisy chain input with CRC check} or set the VHDL generic \esrtype{DB\_DAISY\_CHAIN\_CRC\_CHECK} to \esrtype{true}.
 \end{itemize}
 
 \paragraph{\textbf{Clocking considerations}}
@@ -470,7 +477,7 @@ for the RTL flow. The call accomplishes the following steps:
 	
 	\item Based on the component parameters, DiveBits calculates how many configuration bits of diversified data need to be stored in BlockRAM and how many BlockRAMs are required. The number of BlockRAMs required is an implementation parameter for \emph{divebits\_config} and needs to be changed before synthesis if it is different from the default value of~\esrtype{1}.
 	
-	For the block design flow, DiveBits can automatically adjust the requisite parameter,\\\esrtype{DB\_NUM\_OF\_32K\_ROMS}.
+	For the block design flow, DiveBits can automatically adjust the requisite parameter.
 	
 	The RTL flow, again, cannot do this. It aborts and informs the user to set the VHDL generic \esrtype{DB\_NUM\_OF\_32K\_ROMS} to the required value and re-execute the command.
 	
@@ -801,7 +808,7 @@ An AXI master that can replace a CPU for simple configuration tasks. Can execute
 	\item \esrtype{READ\_TO\_BUFFER} reads from the specified \esrtype{ADDR} offset into a buffer register.
 	\item \esrtype{WRITE\_FROM\_BUFFER} writes to the specified \esrtype{ADDR} offset from the buffer register.
 	\item \esrtype{WRITE\_FROM\_CODE} writes \esrtype{DATA} to the specified \esrtype{ADDR} offset.	
-	\item \esrtype{READ\_CHECK\_WAIT} reads from the specified \esrtype{ADDR} offset and checks if all bits set in \esrtype{CHECK\_MASK} are identical with the same bits in \esrtype{CHECK\_DATA}. In the example shown above, the master reads from address offset 8 and then only checks the lower 4 bit of that read against 0x3. If they are not identical, it loops an reads again until they are.
+	\item \esrtype{READ\_CHECK\_WAIT} reads from the specified \esrtype{ADDR} offset and checks if all bits set in \esrtype{CHECK\_MASK} are identical with the same bits in \esrtype{CHECK\_DATA}. In the example shown above, the master reads from address offset 8 and then only checks the lower 4 bit of that read against 0x3. If they are not identical, it loops and reads again until they are.
 \end{itemize}
 
 
