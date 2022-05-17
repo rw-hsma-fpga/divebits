@@ -1,0 +1,18 @@
+#.gitignore
+
+# baseline: everything
+*
+
+# not this file itself
+!.gitignore
+
+# not the non-generated local files
+!move_pdf.sh
+!DiveBits_UserManual.tcp
+!DiveBits_UserManual.tex
+
+# not the graphics folder
+!graphics/
+!graphics/*
+!graphics/**
+
