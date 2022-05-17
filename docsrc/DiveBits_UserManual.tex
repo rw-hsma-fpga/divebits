@@ -116,7 +116,19 @@
 
 \section{Introduction}
 
-DiveBits is a framework of IP components and Xilinx tool flow extensions that enable easy generation of multiple bitstream copies with individual constant data (\textit{diversified} bitstreams).
+DiveBits is an open-source framework that enables the fast generation of bitstream copies with individualized (\textit{diversified}) constant data. This could be individual cryptographic keys, network IDs or routing data, or any other data that has to be diversified in functionally identical bitstreams.
+
+This functionality is provided in two parts:
+\begin{itemize}
+
+	\item A set of low-resource footprint IP components for block-based or RTL design entry. These can be added to a design to provide various forms of constant data in the required places.
+	
+	\item An extension of the Xilinx Vivado design flow in the form of a set of Tcl functions. With these functions, copies of the original bitstream with \textit{diversified} constant data can be generated in a matter of seconds. The FPGA designer provides the datasets for the diversified bitstreams in the human-readable YAML data format.
+\end{itemize}
+
+When a DiveBits-enhanced FPGA bitstream is loaded, the diversified data, which is stored in a central BlockRAM location, gets distributed to the required locations over a low-resource serial interconnect (consider it ``a bitstream inside a bitstream''). After the data distribution, the main design is released out of reset and begins operation with the diversified data available.
+
+\esrPNG{0.6}{db_bus}{Constant data distribution with DiveBits components}
 
 \section{Installation}
 
@@ -243,7 +255,7 @@ To receive the UART output
 To use the demo for another target board and FPGA, the demo generation must be executed step by step instead of through the single-command flow, so that the FPGA device and various pin constraints can be modified:
 
 \begin{itemize}
-	\item Call \esrtype{DB\_DEMO} in the Tcl console to list all the required commands again.
+	\item Call \esrtype{DEMODB\_HELP} in the Tcl console to list all the required commands again.
 	
 	\item Call \esrtype{DEMODB\_1\_create\_project\_and\_block\_design  ZEDBOARD}
 	      
@@ -520,7 +532,7 @@ and can be used for download to the target(s).
 
 
 \newpage
-\section{List of data-receiving DiveBits components}
+\section{Overview of data-receiving DiveBits components}
 \label{sec:dbcomps}
 
 In this section, you find all data-receiving DiveBits components with their function-specific parameters/generics, ports and YAML configuration structures.
